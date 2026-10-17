@@ -1,4 +1,4 @@
-# gbscore
+# <img src="src/app/logo.svg" width="32" height="32" alt=""> gbscore
 
 A Game Boy music editor for people who'd rather use a piano roll than a tracker. It runs in the browser and plays
 songs on an emulator as you write them. Songs are plain JSON files, one per song, that diff well and that you can

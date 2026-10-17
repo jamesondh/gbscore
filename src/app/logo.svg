@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">
+  <!-- A square wave across a dark tile, one stretch per channel: pulse 1, pulse 2, wave, noise. -->
+  <path d="M1 0h14v1h1v14h-1v1H1v-1H0V1h1z" fill="#18181b"/>
+  <rect x="0" y="3" width="4" height="2" fill="#7cc4f5"/>
+  <rect x="4" y="3" width="2" height="10" fill="#c4a5f5"/>
+  <rect x="6" y="11" width="2" height="2" fill="#c4a5f5"/>
+  <rect x="8" y="3" width="2" height="10" fill="#f5b544"/>
+  <rect x="10" y="3" width="2" height="2" fill="#f5b544"/>
+  <rect x="12" y="3" width="2" height="10" fill="#f59e9e"/>
+  <rect x="14" y="11" width="2" height="2" fill="#f59e9e"/>
+</svg>
