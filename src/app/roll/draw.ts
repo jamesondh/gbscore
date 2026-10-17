@@ -426,8 +426,8 @@ function drawGhosts(ctx: CanvasRenderingContext2D, s: Scene, box: LaneBox, m: Mo
   ctx.beginPath();
   ctx.rect(GUTTER, notesTop(box), s.width - GUTTER, stripTop(box) - notesTop(box));
   ctx.clip();
-  ctx.fillStyle = 'rgba(255,255,255,0.08)';
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
   ctx.lineWidth = 1;
   for (const lane of LANES) {
     if (lane === box.lane || LANE_KIND[lane] === 'noise') continue;

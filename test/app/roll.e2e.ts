@@ -94,8 +94,18 @@ test('shows the other lanes as ghost notes, and hides them', async ({ page }) =>
   const empty = await pixel(page, at(40.5, E5));
   // Pulse 2's E5 shows behind pulse 1, where pulse 1 has nothing.
   await expect.poll(() => pixel(page, at(10.5, E5))).not.toEqual(empty);
+  const fill = await pixel(page, at(10.5, E5));
+  const outline = await pixel(page, at(8, E5));
   await view(page, 'Ghost notes');
   await expect.poll(() => pixel(page, at(10.5, E5))).toEqual(empty);
+  const behindOutline = await pixel(page, at(8, E5));
+  // Ghosts remain visible but subdued, including their formerly distracting outline (issue 11).
+  for (let channel = 0; channel < 3; channel++) {
+    expect(fill[channel]! - empty[channel]!).toBeGreaterThan(0);
+    expect(fill[channel]! - empty[channel]!).toBeLessThanOrEqual(12);
+    expect(outline[channel]! - behindOutline[channel]!).toBeGreaterThan(0);
+    expect(outline[channel]! - behindOutline[channel]!).toBeLessThanOrEqual(36);
+  }
   // Clicking where a ghost was draws a note in pulse 1, as on empty space.
   await view(page, 'Ghost notes');
   await page.mouse.click(at(10.5, E5).x, at(10.5, E5).y);
