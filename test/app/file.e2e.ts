@@ -89,3 +89,22 @@ test('opening a folder forgets the song opened from a file', async ({ page }) =>
   // back from IndexedDB, so check that the song is forgotten instead.
   expect(await page.evaluate(() => localStorage.getItem('gbscore.file'))).toBeNull();
 });
+
+test('the song menu starts a new song and reopens the demo song', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'halt_bug' }).click();
+  await page.getByRole('menuitem', { name: 'New song' }).click();
+  await expect(page.getByRole('button', { name: 'untitled' })).toBeVisible();
+  await expect(page.getByLabel('Unsaved edits')).toHaveCount(0);
+
+  // It has an instrument for the lane, so a click draws a note, and the new song asks before it's thrown away.
+  const canvas = (await page.locator('canvas').boundingBox())!;
+  const box = laneBoxes(canvas.height, 'pulse1')[0]!;
+  await page.mouse.click(canvas.x + GUTTER + 4.5 * 12, canvas.y + noteToY(box, clampPitchTop(box, C5 + 4), C5) + 6);
+  await expect(page.getByLabel('Unsaved edits')).toBeVisible();
+  page.once('dialog', (dialog) => void dialog.accept());
+  await page.getByRole('button', { name: 'untitled' }).click();
+  await page.getByRole('menuitem', { name: 'Open the demo song' }).click();
+  await expect(page.getByRole('button', { name: 'halt_bug' })).toBeVisible();
+  await expect(page.getByLabel('Unsaved edits')).toHaveCount(0);
+});

@@ -218,13 +218,47 @@ export async function restoreLast() {
   }
 }
 
+const DEMO = 'halt_bug.gbscore.json';
+const demoText = async () => (await import('./demo/halt_bug.gbscore.json?raw')).default;
+
 async function openDemo() {
   try {
-    const { default: text } = await import('./demo/halt_bug.gbscore.json?raw');
-    if (!get().open && !get().folder) show(opened('halt_bug.gbscore.json', text, undefined)); // unless a song was opened meanwhile
+    const text = await demoText();
+    if (!get().open && !get().folder) show(opened(DEMO, text, undefined)); // unless a song was opened meanwhile
   } catch (e) {
     say(`Couldn't open the demo song: ${describeError(e)}`, true);
   }
+}
+
+/** Opens the demo song from the song menu, as if from a file. */
+export async function chooseDemo() {
+  const before = get().open;
+  try {
+    await openAsFile(DEMO, await demoText(), before, 'the demo song');
+  } catch (e) {
+    say(`Couldn't open the demo song: ${describeError(e)}`, true);
+  }
+}
+
+/** Opens an empty song, as if from a file: four bars of 4/4 with an instrument for each lane, so a click draws a
+ * note. */
+export function newSong() {
+  let song: Song = {
+    version: 1,
+    grid: { rowsPerBeat: 4, beatsPerBar: 4 },
+    groove: [6, 6, 6, 6],
+    length: 64,
+    loop: 0,
+    instruments: { duty: [], wave: [], noise: [] },
+    waves: [],
+    lanes: { pulse1: [], pulse2: [], wave: [], noise: [] },
+    global: [],
+  };
+  for (const kind of ['duty', 'wave', 'noise'] as const) {
+    const added = instruments.addInstrument(song, kind);
+    if (typeof added !== 'string') song = added.song;
+  }
+  return openAsFile('untitled.gbscore.json', formatSong(song), get().open, 'a new song');
 }
 
 export async function chooseFolder() {
@@ -360,13 +394,19 @@ export async function openShared(): Promise<boolean> {
     say(shared.error, true);
     return true;
   }
+  await openAsFile(shared.name, shared.text, before, 'the shared song');
+  return true;
+}
+
+/** Opens a song from its text as if from a file, closing the folder if one was open, unless the open song was
+ * edited since it was `before`. */
+async function openAsFile(name: string, text: string, before: OpenSong | undefined, what: string) {
   stop();
   await serial(async () => {
-    if (editedSince(before)) return say(`Didn't open the shared song: ${before?.name} was edited meanwhile. Save it first.`, true);
-    show(opened(shared.name, shared.text, undefined), { folder: undefined, songs: [], lostAccess: false, probe: undefined });
-    rememberFile(shared.name, shared.text);
+    if (editedSince(before)) return say(`Didn't open ${what}: ${before?.name} was edited meanwhile. Save it first.`, true);
+    show(opened(name, text, undefined), { folder: undefined, songs: [], lostAccess: false, probe: undefined });
+    rememberFile(name, text);
   });
-  return true;
 }
 
 /** Copies a link that opens the song as it is now, unsaved edits and all. The clipboard gets a promise of the

@@ -398,8 +398,9 @@ choose.
     ("1 lead", "1 beat"); a swatch or icon says what it is. A menu with no value shows a noun (Pattern, View). A
     readout is just the value (`1.1.1`).
   - **The song menu** is the song's name: it saves the song (Download, with no folder open), copies a share link,
-    opens its settings, opens a song file or a folder, and with a folder open lists its songs and checks folder
-    access. There's no folder button: a song opened from a file has no folder, and the folder's name is in the
+    opens its settings, starts a new song, opens a song file, a folder or the demo song, and with a folder open
+    lists its songs and checks folder access. A new song (`untitled`: four bars of 4/4, an instrument for each
+    lane) and the demo song open as if from a file, as a share link does, closing the folder. There's no folder button: a song opened from a file has no folder, and the folder's name is in the
     menu and the tooltip, while Save or Download says which kind is open.
   - **Tooltips** are a name and a shortcut on one line: "Note entry (M)". Every control without words has an
     `aria-label`.

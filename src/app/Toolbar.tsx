@@ -42,10 +42,12 @@ import logo from './logo.svg';
 import { bestRoot, ROOTS, SCALES, type ScaleKind, scaleName } from './scales.ts';
 import {
   addInstrument,
+  chooseDemo,
   chooseFile,
   chooseFolder,
   engine,
   lengths,
+  newSong,
   openSong,
   save,
   setGhosts,
@@ -117,8 +119,8 @@ function Divider() {
   return <div className="mx-1 h-5 w-px bg-border" />;
 }
 
-/** The song's name: saves it (or downloads it, with no folder open), copies a link to it, opens its settings, and opens a song file or a
- * folder, listing the folder's songs. */
+/** The song's name: saves it (or downloads it, with no folder open), copies a link to it, opens its settings, starts a new song, and
+ * opens a song file, a folder (listing its songs) or the demo song. */
 function SongMenu() {
   const [settings, setSettings] = useState(false);
   const folder = useApp((s) => s.folder);
@@ -149,10 +151,12 @@ function SongMenu() {
             Song settings…
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => mayDiscard() && void newSong()}>New song</DropdownMenuItem>
           <DropdownMenuItem onSelect={() => mayDiscard() && void chooseFile()}>Open a song file…</DropdownMenuItem>
           <DropdownMenuItem disabled={!canOpenFolders()} onSelect={() => mayDiscard() && void chooseFolder()}>
             {folder ? 'Open another folder…' : 'Open a folder…'}
           </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => mayDiscard() && void chooseDemo()}>Open the demo song</DropdownMenuItem>
           {folder && (
             <>
               <DropdownMenuSeparator />
