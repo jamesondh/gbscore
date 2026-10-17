@@ -25,7 +25,7 @@ npm run gbscore -- export song.gbscore.json --gbdk song.c  # GBDK C for a game (
 
 `npm run build:cli` bundles the command into `dist/gbscore.js`.
 
-The editor is at **https://gbscore.vercel.app**, deployed from `main` on every push. It works best in Chrome or Edge,
+The editor is at **https://www.gbscore.com**, deployed from `main` on every push. It works best in Chrome or Edge,
 which can open folders on your computer. Other browsers, and Brave unless
 `brave://flags/#file-system-access-api` is on, can open one song from a file; saving downloads it, and the
 song stays marked unsaved, since the app can't tell whether the download finished. To work on it:

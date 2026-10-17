@@ -657,7 +657,7 @@ choose.
   changed from outside, in place or by replacing it. If the app sees stale contents, the fix is in the share's
   settings, not the app.
 - **Hosting:** a static build (`npm run build:app`, into `dist/web`), deployed to Vercel on each push to `main`,
-  at https://gbscore.vercel.app. The site holds no songs. Chrome only allows folder access and audio worklets over
+  at https://www.gbscore.com. The site holds no songs. Chrome only allows folder access and audio worklets over
   HTTPS or on localhost.
 
 ### Alternatives considered
