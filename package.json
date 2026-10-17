@@ -1,0 +1,50 @@
+{
+  "name": "gbscore",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Game Boy songs as JSON, compiled for hUGEDriver",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "gbscore": "dist/gbscore.js"
+  },
+  "scripts": {
+    "gbscore": "node src/cli/main.ts",
+    "build:cli": "esbuild src/cli/main.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/gbscore.js --banner:js='#!/usr/bin/env node'",
+    "schema": "node scripts/write-schema.ts",
+    "typecheck": "tsc",
+    "test": "vitest run",
+    "dev": "vite --config src/app/vite.config.ts",
+    "build:app": "vite build --config src/app/vite.config.ts",
+    "preview": "vite preview --config src/app/vite.config.ts",
+    "test:app": "npm run build:app && playwright test"
+  },
+  "dependencies": {
+    "class-variance-authority": "0.7.1",
+    "cn": "0.4.0",
+    "lucide-react": "1.52.0",
+    "radix-ui": "1.7.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/node": "24.19.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "esbuild": "0.28.2",
+    "shadcn": "4.21.4",
+    "tailwindcss": "4.3.3",
+    "tw-animate-css": "1.4.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.3"
+  }
+}

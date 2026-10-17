@@ -1,0 +1,824 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "Optional path or URL of gbscore.schema.json, for editors.",
+      "type": "string"
+    },
+    "version": {
+      "type": "number",
+      "const": 1,
+      "description": "The file format version."
+    },
+    "title": {
+      "description": "The song title.",
+      "type": "string"
+    },
+    "artist": {
+      "description": "Who wrote it.",
+      "type": "string"
+    },
+    "comment": {
+      "description": "Notes for people.",
+      "type": "string"
+    },
+    "grid": {
+      "type": "object",
+      "properties": {
+        "rowsPerBeat": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64,
+          "description": "Rows per beat; 4 makes a row a sixteenth note."
+        },
+        "beatsPerBar": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64,
+          "description": "Beats per bar."
+        }
+      },
+      "required": [
+        "rowsPerBeat",
+        "beatsPerBar"
+      ],
+      "additionalProperties": false,
+      "description": "For display only. Never changes the sound."
+    },
+    "groove": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255
+        }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "Ticks per row, cycling every 4 rows. The game ticks at 60.24 Hz."
+    },
+    "length": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991,
+      "description": "Song length in rows."
+    },
+    "loop": {
+      "default": 0,
+      "description": "The row the song loops back to after its last row.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "instruments": {
+      "type": "object",
+      "properties": {
+        "duty": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DutyInstrument"
+          }
+        },
+        "wave": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/WaveInstrument"
+          }
+        },
+        "noise": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NoiseInstrument"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Pulse lanes use duty instruments; the wave and noise lanes use their own."
+    },
+    "waves": {
+      "default": [],
+      "description": "Wave shapes for the wave channel.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 15,
+            "description": "The number wave instruments and the wave effect use (0–15)."
+          },
+          "name": {
+            "description": "A label for people; never changes the sound.",
+            "type": "string"
+          },
+          "data": {
+            "type": "string",
+            "pattern": "^[0-9A-F]{32}$",
+            "description": "32 samples, one hex digit (0–F) each."
+          }
+        },
+        "required": [
+          "id",
+          "data"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "patterns": {
+      "description": "Reusable runs of notes. A lane item with `pattern` plays one at its row.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Pattern"
+      }
+    },
+    "lanes": {
+      "type": "object",
+      "properties": {
+        "pulse1": {
+          "default": [],
+          "description": "Pulse channel 1, with duty instruments. The only one with pitch sweep.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LaneItem"
+          }
+        },
+        "pulse2": {
+          "default": [],
+          "description": "Pulse channel 2, with duty instruments.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LaneItem"
+          }
+        },
+        "wave": {
+          "default": [],
+          "description": "The wave channel, with wave instruments.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LaneItem"
+          }
+        },
+        "noise": {
+          "default": [],
+          "description": "The noise channel, with noise instruments. Higher notes are higher-pitched noise.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LaneItem"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "One lane per Game Boy sound channel. Items sort by row."
+    },
+    "global": {
+      "default": [],
+      "description": "Song-wide effects. The compiler puts each on a lane with a free effect slot.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/GlobalItem"
+      }
+    }
+  },
+  "required": [
+    "version",
+    "grid",
+    "groove",
+    "length",
+    "instruments",
+    "lanes"
+  ],
+  "additionalProperties": false,
+  "description": "A gbscore song.",
+  "$defs": {
+    "DutyInstrument": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15,
+          "description": "The number notes use to pick this instrument (1–15)."
+        },
+        "name": {
+          "description": "A label for people; never changes the sound.",
+          "type": "string"
+        },
+        "duty": {
+          "type": "string",
+          "enum": [
+            "12.5%",
+            "25%",
+            "50%",
+            "75%"
+          ],
+          "description": "Duty cycle: the pulse width, from thin (12.5%) to hollow (50%)."
+        },
+        "volume": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15,
+          "description": "Starting volume, 0–15."
+        },
+        "envDir": {
+          "default": "down",
+          "description": "Envelope direction.",
+          "type": "string",
+          "enum": [
+            "up",
+            "down"
+          ]
+        },
+        "envPace": {
+          "default": 0,
+          "description": "Envelope pace: ticks of 1/64 s per volume step. 0 holds the volume.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "sweepTime": {
+          "default": 0,
+          "description": "Pitch sweep pace (pulse 1 only). 0 turns the sweep off.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "sweepDir": {
+          "default": "down",
+          "description": "Pitch sweep direction.",
+          "type": "string",
+          "enum": [
+            "up",
+            "down"
+          ]
+        },
+        "sweepShift": {
+          "default": 0,
+          "description": "Pitch sweep step size: each step changes the period by period / 2^shift.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "length": {
+          "default": 0,
+          "description": "Length counter: the note lasts (64 − length) / 256 s when enabled.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 63
+        },
+        "lengthEnabled": {
+          "default": false,
+          "description": "Whether the note stops by itself after `length`.",
+          "type": "boolean"
+        },
+        "table": {
+          "minItems": 1,
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TableRow"
+          },
+          "description": "Runs one row per tick from the start of each note. After row 31 it goes back to row 0, unless a row jumps. Missing rows at the end are empty."
+        }
+      },
+      "required": [
+        "id",
+        "duty",
+        "volume"
+      ],
+      "additionalProperties": false
+    },
+    "TableRow": {
+      "type": "object",
+      "properties": {
+        "note": {
+          "description": "Semitones from the playing note. Omit to leave the pitch alone.",
+          "type": "integer",
+          "minimum": -36,
+          "maximum": 35
+        },
+        "jump": {
+          "description": "After this row, continue at this table row instead of the next one.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30
+        },
+        "fx": {
+          "$ref": "#/$defs/Effect"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One tick of an instrument table."
+    },
+    "Effect": {
+      "type": "object",
+      "properties": {
+        "arp": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 15
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 15
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "0xy: arpeggio, cycling the note, +x and +y semitones each tick."
+        },
+        "slideUp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "1xx: slide the pitch up by xx units per tick."
+        },
+        "slideDown": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "2xx: slide the pitch down by xx units per tick."
+        },
+        "glide": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "3xx: glide toward this row's note by xx units per tick (tone portamento)."
+        },
+        "vibrato": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 15
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 15
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "4xy: vibrato with speed x and depth y."
+        },
+        "duty": {
+          "type": "string",
+          "enum": [
+            "12.5%",
+            "25%",
+            "50%",
+            "75%"
+          ],
+          "description": "9xx on pulse lanes and duty tables: set the duty cycle."
+        },
+        "wave": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15,
+          "description": "9xx on the wave lane and wave tables: switch to wave n."
+        },
+        "volSlide": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 15
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 15
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Axy: retrigger the note with its volume raised by x and lowered by y."
+        },
+        "volume": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15,
+          "description": "C0v: set the volume (0–15) and restart the note. The wave channel has 4 levels."
+        },
+        "cut": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Exx: cut the note at tick xx of this row."
+        },
+        "delay": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "7xx: start this row's note xx ticks late."
+        },
+        "raw": {
+          "type": "string",
+          "pattern": "^[0-9A-F]{3}$",
+          "description": "An effect as tracker hex, e.g. \"9D0\". Only for values the named effects can't express, such as duty bytes with length bits."
+        }
+      },
+      "additionalProperties": false,
+      "description": "One effect: an object with exactly one key."
+    },
+    "WaveInstrument": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15,
+          "description": "The number notes use to pick this instrument (1–15)."
+        },
+        "name": {
+          "description": "A label for people; never changes the sound.",
+          "type": "string"
+        },
+        "wave": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15,
+          "description": "Which wave to play."
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "0%",
+            "100%",
+            "50%",
+            "25%"
+          ],
+          "description": "Output level."
+        },
+        "length": {
+          "default": 0,
+          "description": "Length counter: the note lasts (256 − length) / 256 s when enabled.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "lengthEnabled": {
+          "default": false,
+          "description": "Whether the note stops by itself after `length`.",
+          "type": "boolean"
+        },
+        "table": {
+          "minItems": 1,
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TableRow"
+          },
+          "description": "Runs one row per tick from the start of each note. After row 31 it goes back to row 0, unless a row jumps. Missing rows at the end are empty."
+        }
+      },
+      "required": [
+        "id",
+        "wave",
+        "level"
+      ],
+      "additionalProperties": false
+    },
+    "NoiseInstrument": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15,
+          "description": "The number notes use to pick this instrument (1–15)."
+        },
+        "name": {
+          "description": "A label for people; never changes the sound.",
+          "type": "string"
+        },
+        "volume": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15,
+          "description": "Starting volume, 0–15."
+        },
+        "envDir": {
+          "default": "down",
+          "description": "Envelope direction.",
+          "type": "string",
+          "enum": [
+            "up",
+            "down"
+          ]
+        },
+        "envPace": {
+          "default": 0,
+          "description": "Envelope pace: ticks of 1/64 s per volume step. 0 holds the volume.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "bits": {
+          "default": 15,
+          "description": "Noise mode: 15-bit (hiss) or 7-bit (buzzy, more tonal).",
+          "type": "number",
+          "enum": [
+            15,
+            7
+          ]
+        },
+        "length": {
+          "default": 0,
+          "description": "Length counter: the note lasts (64 − length) / 256 s when enabled.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 63
+        },
+        "lengthEnabled": {
+          "default": false,
+          "description": "Whether the note stops by itself after `length`.",
+          "type": "boolean"
+        },
+        "table": {
+          "minItems": 1,
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TableRow"
+          },
+          "description": "Runs one row per tick from the start of each note. After row 31 it goes back to row 0, unless a row jumps. Missing rows at the end are empty."
+        }
+      },
+      "required": [
+        "id",
+        "volume"
+      ],
+      "additionalProperties": false
+    },
+    "Pattern": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^\\S(?:.{0,30}\\S)?$",
+          "description": "The name placements use: 1 to 32 characters, no spaces at either end, unique in the song."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "duty",
+            "wave",
+            "noise"
+          ],
+          "description": "The instruments its notes use. A duty pattern goes on either pulse lane."
+        },
+        "length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Length in rows. Every item starts before it and every note ends by it."
+        },
+        "items": {
+          "default": [],
+          "description": "Notes and effects, as in a lane, with rows from the pattern start.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PatternItem"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "length"
+      ],
+      "additionalProperties": false,
+      "description": "A run of notes for one lane, placed on the timeline by lane items with `pattern`."
+    },
+    "PatternItem": {
+      "type": "object",
+      "properties": {
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Row in the pattern, counting from 0 at the pattern's start."
+        },
+        "len": {
+          "description": "Notes: rows the note lasts; it is cut when they end. Placements: rows it plays, cutting its last repeat short.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "note": {
+          "description": "Note name, C3 to B8 (A5 is 440 Hz). Omit for an effect without a note.",
+          "type": "string"
+        },
+        "inst": {
+          "description": "Instrument number. Every note needs inst, or legato. On a placement, the instrument its pattern's notes play with.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15
+        },
+        "legato": {
+          "description": "Change pitch without restarting the note: no new attack, and the previous note's instrument, envelope and table carry on. Pulse and noise lanes only; on noise it also returns to 15-bit mode.",
+          "type": "boolean",
+          "const": true
+        },
+        "fx": {
+          "description": "An effect on this row. Notes can't use cut; use cutTick.",
+          "$ref": "#/$defs/Effect"
+        },
+        "cutTick": {
+          "description": "End the note at this tick of its last row, instead of when the row after it starts.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        }
+      },
+      "required": [
+        "row"
+      ],
+      "additionalProperties": false,
+      "description": "A note or an effect in a pattern, as in a lane."
+    },
+    "LaneItem": {
+      "type": "object",
+      "properties": {
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Row on the song timeline, counting from 0."
+        },
+        "len": {
+          "description": "Notes: rows the note lasts; it is cut when they end. Placements: rows it plays, cutting its last repeat short.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "note": {
+          "description": "Note name, C3 to B8 (A5 is 440 Hz). Omit for an effect without a note.",
+          "type": "string"
+        },
+        "inst": {
+          "description": "Instrument number. Every note needs inst, or legato. On a placement, the instrument its pattern's notes play with.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15
+        },
+        "legato": {
+          "description": "Change pitch without restarting the note: no new attack, and the previous note's instrument, envelope and table carry on. Pulse and noise lanes only; on noise it also returns to 15-bit mode.",
+          "type": "boolean",
+          "const": true
+        },
+        "fx": {
+          "description": "An effect on this row. Notes can't use cut; use cutTick.",
+          "$ref": "#/$defs/Effect"
+        },
+        "cutTick": {
+          "description": "End the note at this tick of its last row, instead of when the row after it starts.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "pattern": {
+          "description": "Places the pattern with this id here. A placement has no fields but row, transpose, repeat, inst and len.",
+          "type": "string"
+        },
+        "transpose": {
+          "description": "Placements only: semitones added to the pattern's notes.",
+          "type": "integer",
+          "minimum": -71,
+          "maximum": 71
+        },
+        "repeat": {
+          "description": "Placements only: how many times the pattern plays, back to back. 1 if left out.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "row"
+      ],
+      "additionalProperties": false,
+      "description": "A note (row, len, note, inst or legato), an effect without a note (row, fx), or a placed pattern (row, pattern, transpose, repeat, inst, len)."
+    },
+    "GlobalItem": {
+      "type": "object",
+      "properties": {
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Row on the song timeline, counting from 0."
+        },
+        "tempo": {
+          "description": "Fxx: every row from here takes this many ticks, so the groove becomes uniform.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255
+        },
+        "pan": {
+          "description": "8xx: which speakers pulse1, pulse2, wave and noise play on.",
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "string",
+              "enum": [
+                "off",
+                "R",
+                "L",
+                "LR"
+              ]
+            },
+            {
+              "type": "string",
+              "enum": [
+                "off",
+                "R",
+                "L",
+                "LR"
+              ]
+            },
+            {
+              "type": "string",
+              "enum": [
+                "off",
+                "R",
+                "L",
+                "LR"
+              ]
+            },
+            {
+              "type": "string",
+              "enum": [
+                "off",
+                "R",
+                "L",
+                "LR"
+              ]
+            }
+          ],
+          "items": false,
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "masterVolume": {
+          "description": "5xx: left and right master volume, 0–7.",
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "row"
+      ],
+      "additionalProperties": false,
+      "description": "A song-wide effect: row plus exactly one of tempo, pan or masterVolume."
+    }
+  },
+  "$id": "gbscore.schema.json",
+  "title": "gbscore song"
+}

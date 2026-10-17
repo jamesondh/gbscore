@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.DS_Store
+*.wav
+*.mp3
+test-results/
+playwright-report/
+.vercel
+# Songs that may not be redistributed, with their tests: test/fixtures/README.md
+test/private/

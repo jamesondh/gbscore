@@ -1,0 +1,29 @@
+From 27fe5f36e7c0e778bcd7ecaf85f2c28ba25b2df4 Mon Sep 17 00:00:00 2001
+From: Nick Faro <yux50000@hotmail.com>
+Date: Thu, 23 Apr 2026 06:49:40 -0400
+Subject: [PATCH] temp hack
+
+---
+ hUGEDriver.asm | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/hUGEDriver.asm b/hUGEDriver.asm
+index f88098c..4728bcf 100644
+--- a/hUGEDriver.asm
++++ b/hUGEDriver.asm
+@@ -848,7 +848,11 @@ fx_set_speed:
+     ret nz
+ 
+     ld a, c
+-    ld [ticks_per_row], a
++    ld hl, ticks_per_row
++    ld [hl+], a
++    ld [hl+], a
++    ld [hl+], a
++    ld [hl], c
+     ret
+ 
+ 
+-- 
+2.43.0
+

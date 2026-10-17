@@ -1,0 +1,34 @@
+--- a/src/emulator.c
++++ b/src/emulator.c
+@@ -723,6 +723,7 @@
+   PaletteRGBA sgb_pal[4];
+   CgbColorCurve cgb_color_curve;
+   ApuLog apu_log;
++  Ticks halt_until; /* gbscore: how far a halted CPU may skip ahead in this run. */
+ #ifdef RGBDS_LIVE
+   breakpoints_type breakpoint[BREAKPOINTS_SIZE] __attribute__((aligned(8)));
+ #endif
+@@ -4436,6 +4437,15 @@
+ 
+       case CPU_STATE_HALT:
+         should_dispatch = (INTR.new_if & INTR.ie) != 0;
++        /* gbscore: skip the idle cycles up to the next interrupt or the end of this run, stopping one cycle short
++         * so that the last one runs as before. */
++        if (!should_dispatch) {
++          Ticks target = MIN(e->state.next_intr_ticks, e->halt_until);
++          Ticks step = e->state.cpu_tick;
++          if (target > TICKS + 2 * step) {
++            TICKS += ((target - TICKS) / step - 1) * step;
++          }
++        }
+         tick(e);
+         if (UNLIKELY(should_dispatch)) {
+           intr_synchronize(e);
+@@ -4731,6 +4741,7 @@
+       APU.sync_ticks +
+       (u32)DIV_CEIL(frames_left * CPU_TICKS_PER_SECOND, ab->frequency);
+   Ticks check_ticks = MIN(until_ticks, max_audio_ticks);
++  e->halt_until = check_ticks;
+   while (e->state.event == 0 && TICKS < check_ticks) {
+     emulator_step_internal(e);
+   }
