@@ -381,7 +381,8 @@ choose.
 - **Toolbar:** one row above the roll. These rules keep it from growing into a mess as controls are added.
   - **It fits.** From 1024 px wide up, with long song and instrument names, every control is on the screen, on
     one row. `test/app/toolbar.e2e.ts` checks this at 1024, 1280 and 1920 px.
-  - **Groups, in order:** the logo, file (the song menu), transport (Play, Loop, position), pen (instrument, note
+  - **Groups, in order:** the logo (it opens About: what gbscore is, who made it, the source on GitHub and the
+    commit the build is from), file (the song menu), transport (Play, Loop, position), pen (instrument, note
     length, patterns: what a click or key adds), input (note entry, Play keys, hearing), view (a menu), then
     the list of keys at the far right. A divider sits between groups. A new control joins a group; one that fits
     none probably belongs in a menu, or beside what it acts on (a lane header, the panel), not the bar.

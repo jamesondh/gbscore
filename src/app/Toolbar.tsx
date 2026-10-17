@@ -61,6 +61,11 @@ import {
   useApp,
 } from './store.ts';
 
+/** The commit the app was built from, short, or empty when the build couldn't tell (vite.config.ts). */
+declare const __COMMIT__: string;
+
+const REPO = 'https://github.com/jamesondh/gbscore';
+
 /** Asks before something would throw away unsaved edits. */
 function mayDiscard(): boolean {
   const open = useApp.getState().open;
@@ -73,7 +78,7 @@ export function Toolbar() {
 
   return (
     <div role="toolbar" aria-label="Toolbar" className="flex h-11 shrink-0 items-center gap-1 border-b px-2 *:shrink-0">
-      <img src={logo} alt="" className="mx-1 size-6" />
+      <About />
       <SongMenu />
 
       <Divider />
@@ -384,6 +389,56 @@ function Entry() {
 }
 
 /** The list of keys, in a dialog (?). */
+/** The logo, which opens what gbscore is and who made it. */
+function About() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button size="icon-sm" variant="ghost" aria-label="About gbscore" title="About gbscore">
+          <img src={logo} alt="" className="size-6" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md text-xs" onCloseAutoFocus={(e) => e.preventDefault()}>
+        <DialogTitle className="flex items-center gap-2">
+          <img src={logo} alt="" className="size-6" />
+          gbscore
+        </DialogTitle>
+        <DialogDescription className="text-xs text-foreground">
+          A Game Boy music editor for people who'd rather use a piano roll than a tracker. Songs play on an emulator as
+          you write them, and the same compiler turns them into hUGEDriver data for your own game.
+        </DialogDescription>
+        <p>
+          Songs are plain JSON files, one per song, that diff well and that you can also edit by hand. Chrome and Edge
+          can open a folder of songs; other browsers open one song file at a time, and saving downloads it. The command
+          line also imports hUGETracker <code>.uge</code> songs and exports GBDK C.
+        </p>
+        <p>Playback runs hUGEDriver, by SuperDisk and contributors, on the binjgb emulator, by Ben Smith.</p>
+        <div className="flex items-baseline gap-1.5 text-muted-foreground">
+          <span>Made by Jameson Hodge</span>·
+          <a href={REPO} target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2">
+            Source on GitHub
+          </a>
+          ·
+          <a href={`${REPO}/blob/main/LICENSE`} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+            MIT license
+          </a>
+          {__COMMIT__ && (
+            <a
+              href={`${REPO}/commit/${__COMMIT__}`}
+              target="_blank"
+              rel="noreferrer"
+              title="The build's commit"
+              className="ml-auto font-mono text-[0.7rem] hover:underline"
+            >
+              {__COMMIT__}
+            </a>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function Keys() {
   const help = useApp((s) => s.help);
   return (

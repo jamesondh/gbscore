@@ -51,3 +51,11 @@ test('fits from 1024 px wide up, with long names', async ({ page }) => {
     expect(fit, `at ${width} px`).toEqual({ overflow: 0, off: [] });
   }
 });
+
+test('the logo opens About, with the source and the commit the build is from', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'About gbscore' }).click();
+  const about = page.getByRole('dialog', { name: 'gbscore' });
+  await expect(about.getByRole('link', { name: 'Source on GitHub' })).toHaveAttribute('href', 'https://github.com/jamesondh/gbscore');
+  await expect(about.getByRole('link', { name: /^[0-9a-f]{7}$/ })).toBeVisible();
+});
