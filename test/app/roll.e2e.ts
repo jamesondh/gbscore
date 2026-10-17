@@ -57,10 +57,20 @@ async function onDisk(page: Page) {
   }, NAME);
 }
 
-/** Where a row is on pulse 1's strip of placed patterns. The bar for a selected placement moves the roll down, so
- * it's measured each time. */
+/** Where the canvas is, once it fills the roll again. The bar for a selected placement takes height from the roll,
+ * moving its lanes, and the canvas follows a frame later; measured before then, a press lands two semitones low. */
+async function roll(page: Page) {
+  const canvas = page.locator('canvas');
+  await expect
+    .poll(() => canvas.evaluate((c) => c.getBoundingClientRect().height === c.parentElement!.getBoundingClientRect().height))
+    .toBe(true);
+  return (await canvas.boundingBox())!;
+}
+
+/** Where a row is on pulse 1's strip of placed patterns. The bar for a selected placement moves the lanes, so it's
+ * measured each time. */
 async function clip(page: Page, row: number) {
-  const now = (await page.locator('canvas').boundingBox())!;
+  const now = await roll(page);
   return { x: now.x + GUTTER + row * ROW, y: now.y + laneBoxes(now.height, 'pulse1')[0]!.top + 8 };
 }
 
@@ -226,7 +236,7 @@ test("draws a placed pattern's notes, and a click on one picks it up, editing it
   const strip = await clip(page, 20.5);
   await page.mouse.click(strip.x, strip.y);
   await expect(page.getByLabel('Transpose')).toHaveValue('4');
-  const now = (await page.locator('canvas').boundingBox())!;
+  const now = await roll(page);
   const box = laneBoxes(now.height, 'pulse1')[0]!;
   const y = now.y + noteToY(box, clampPitchTop(box, E5 + 4), E5 + 1) + 6; // F5, where the bar has moved it
   await page.mouse.move(at(17.5, 0).x, y);
@@ -248,12 +258,7 @@ test('edits a pattern where it plays, changing every place, and arranges placeme
   const at = await open(page, formatSong(p.song), E5);
   const canvas = (await page.locator('canvas').boundingBox())!;
   const box = laneBoxes(canvas.height, 'pulse1')[0]!;
-  // Where a row is on the strip of placed patterns. The bar for a selected placement moves the roll down, so it's
-  // measured each time.
-  const clips = async (row: number) => {
-    const now = (await page.locator('canvas').boundingBox())!;
-    return { x: now.x + GUTTER + row * ROW, y: now.y + laneBoxes(now.height, 'pulse1')[0]!.top + 8 };
-  };
+  const clips = (row: number) => clip(page, row);
   const press = async (row: number) => {
     const p = await clips(row);
     await page.mouse.move(p.x, p.y);
