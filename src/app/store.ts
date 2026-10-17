@@ -27,9 +27,11 @@ import {
   exists,
   reopen,
   SONG_SUFFIX,
+  songTitle,
   writeText,
 } from './files.ts';
 import { SCALES, type Scale } from './scales.ts';
+import { LONG_LINK, readShare, shareLink } from './share.ts';
 import { check, load, noteIndex, type Playable } from './song.ts';
 
 export interface View {
@@ -192,8 +194,10 @@ function serial<T>(job: () => Promise<T>): Promise<T> {
 // ---- folders and songs
 
 /** At startup, opens what was open last: a song from a file, as it was opened or last downloaded, or else the
- * folder from last time. With neither, opens the demo song, as if from a file. */
+ * folder from last time. With neither, opens the demo song, as if from a file. A share link in the address comes
+ * before all of these. */
 export async function restoreLast() {
+  if (await openShared()) return;
   const file = rememberedFile();
   if (file) {
     try {
@@ -205,6 +209,7 @@ export async function restoreLast() {
   }
   try {
     const last = await lastFolder();
+    if (get().open) return; // a share link was pasted in meanwhile
     if (!last) return openDemo();
     if (last.granted) await useFolder(last.dir);
     else set({ remembered: last.dir });
@@ -341,6 +346,43 @@ export async function openFile(file: File) {
       say(`Couldn't open ${file.name}: ${describeError(e)}`, true);
     }
   });
+}
+
+/** Opens the song in the address's share link, if it has one, as if from a file (docs/editor/, "Share links").
+ * Takes the link out of the address once read, so reloading reopens the song as it was last downloaded, as for a
+ * file. Returns whether the address had a link. */
+export async function openShared(): Promise<boolean> {
+  const before = get().open;
+  const shared = await readShare(location.hash);
+  if (!shared) return false;
+  history.replaceState(null, '', location.pathname + location.search);
+  if ('error' in shared) {
+    say(shared.error, true);
+    return true;
+  }
+  stop();
+  await serial(async () => {
+    if (editedSince(before)) return say(`Didn't open the shared song: ${before?.name} was edited meanwhile. Save it first.`, true);
+    show(opened(shared.name, shared.text, undefined), { folder: undefined, songs: [], lostAccess: false, probe: undefined });
+    rememberFile(shared.name, shared.text);
+  });
+  return true;
+}
+
+/** Copies a link that opens the song as it is now, unsaved edits and all. The clipboard gets a promise of the
+ * text, so Safari still counts the click that asked for it. */
+export async function share() {
+  const open = get().open;
+  if (!open?.song || open.broken) return;
+  const link = shareLink(location.origin + location.pathname, open.name, open.song);
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'text/plain': link.then((t) => new Blob([t], { type: 'text/plain' })) })]);
+    const n = (await link).length;
+    const long = n > LONG_LINK ? ', too long for some chat apps' : '';
+    say(`Copied a link to ${songTitle(open.name)} (${n.toLocaleString('en')} characters${long}).`);
+  } catch (e) {
+    say(`Couldn't copy a share link: ${describeError(e)}`, true);
+  }
 }
 
 // A song opened from a file can't be read again on the next visit, since the browser gave the app its contents and

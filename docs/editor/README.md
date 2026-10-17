@@ -397,10 +397,10 @@ choose.
     only, filled when on, and its icon doesn't change. A picker shows its value and a chevron, with no prefix
     ("1 lead", "1 beat"); a swatch or icon says what it is. A menu with no value shows a noun (Pattern, View). A
     readout is just the value (`1.1.1`).
-  - **The song menu** is the song's name: it saves the song (Download, with no folder open), opens its settings,
-    opens a song file or a folder, and with a folder open lists its songs and checks folder access. There's no
-    folder button: a song opened from a file has no folder, and the folder's name is in the menu and the tooltip,
-    while Save or Download says which kind is open.
+  - **The song menu** is the song's name: it saves the song (Download, with no folder open), copies a share link,
+    opens its settings, opens a song file or a folder, and with a folder open lists its songs and checks folder
+    access. There's no folder button: a song opened from a file has no folder, and the folder's name is in the
+    menu and the tooltip, while Save or Download says which kind is open.
   - **Tooltips** are a name and a shortcut on one line: "Note entry (M)". Every control without words has an
     `aria-label`.
   - **Narrow screens** lose words before controls: names truncate, then below 1280 px the words on Pattern
@@ -629,6 +629,23 @@ choose.
   since the app can't tell whether it finished, so closing the tab still asks first. Opening a file closes the
   folder. The app keeps the song's text, as opened or last downloaded, in local storage and reopens it on the next
   visit; opening a folder forgets it.
+- **Share links:** the song menu's Copy share link copies a link with the song in it, as it is, unsaved edits
+  and all, so sharing needs no server or storage (`src/app/share.ts`).
+  - The song's JSON, minified, deflated (zlib, with the browser's `CompressionStream`, so its checksum catches a
+    garbled link) and in base64url, goes in the address's fragment with the file's name:
+    `#v=1&name=halt_bug&song=…`. Browsers don't send the fragment, so the host's limit on addresses doesn't apply.
+    The JSON compresses 12–20×: the demo song's 85 KB file is a link of about 7,000 characters, a 160-bar song
+    imported from hUGETracker about 40,000 (20,000 imported with `--patterns`). Browsers open links that long; chat
+    apps may not (Discord cuts at 2,000), so the status line says how long the link is, and warns when it's over
+    2,000 characters.
+  - `v` is the link's format. A link is a snapshot that can't be taken back, so every `v` the app has written
+    must stay readable; a new encoding gets a new `v`. The song inside has its own `version`.
+  - Opening a link opens the song as if from a file, before any other song or folder would reopen, and takes the
+    link out of the address, so a reload reopens the song as for a file. A link pasted into a tab already open opens
+    too, after asking about unsaved edits. A link cut short or garbled says it's damaged, and one whose song isn't
+    valid says why, without replacing the open song. Declining to throw away edits for a pasted link takes it out of
+    the address.
+  - Not done: short links. They'd need storage, such as a gist or a blob store, for what would be a short code.
 - **First visit:** with no song or folder to reopen, the app opens a demo song, *HALT Bug*
   (`src/app/demo/halt_bug.gbscore.json`), as if from a file.
 - **Saving:**

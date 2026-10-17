@@ -52,6 +52,7 @@ import {
   setHelp,
   setHear,
   setScale,
+  share,
   setPanel,
   setPen,
   startProbe,
@@ -67,7 +68,7 @@ declare const __COMMIT__: string;
 const REPO = 'https://github.com/jamesondh/gbscore';
 
 /** Asks before something would throw away unsaved edits. */
-function mayDiscard(): boolean {
+export function mayDiscard(): boolean {
   const open = useApp.getState().open;
   return !unsaved(open) || confirm(`${open!.name} has unsaved edits. Throw them away?`);
 }
@@ -116,7 +117,7 @@ function Divider() {
   return <div className="mx-1 h-5 w-px bg-border" />;
 }
 
-/** The song's name: saves it (or downloads it, with no folder open), opens its settings, and opens a song file or a
+/** The song's name: saves it (or downloads it, with no folder open), copies a link to it, opens its settings, and opens a song file or a
  * folder, listing the folder's songs. */
 function SongMenu() {
   const [settings, setSettings] = useState(false);
@@ -140,6 +141,9 @@ function SongMenu() {
           <DropdownMenuItem disabled={folder ? !dirty : !open?.song || open.broken} onSelect={() => void save()}>
             {folder ? 'Save' : 'Download'}
             <DropdownMenuShortcut>Cmd-S</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={!open?.song || open.broken} onSelect={() => void share()}>
+            Copy share link
           </DropdownMenuItem>
           <DropdownMenuItem disabled={!open?.song} onSelect={() => setSettings(true)}>
             Song settings…

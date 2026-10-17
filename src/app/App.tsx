@@ -5,8 +5,9 @@ import { Conflict, Errors, FolderCheck, StatusLine, Welcome } from './Panels.tsx
 import { Roll } from './roll/Roll.tsx';
 import { releaseAll, resumeMidi } from './entry.ts';
 import { onKey, onKeyUp, onLeave } from './keys.ts';
-import { poll, restoreLast, useApp } from './store.ts';
-import { Toolbar } from './Toolbar.tsx';
+import { openShared, poll, restoreLast, useApp } from './store.ts';
+import { isShare } from './share.ts';
+import { mayDiscard, Toolbar } from './Toolbar.tsx';
 import { PatternBar } from './Patterns.tsx';
 
 const POLL_MS = 1000;
@@ -20,7 +21,13 @@ export function App() {
     void resumeMidi();
     const timer = setInterval(() => void poll(), POLL_MS);
     const onFocus = () => void poll();
+    const onHash = () => {
+      if (!isShare(location.hash)) return; // a share link pasted into this tab
+      if (mayDiscard()) void openShared();
+      else history.replaceState(null, '', location.pathname + location.search); // or a reload would open it
+    };
     window.addEventListener('focus', onFocus);
+    window.addEventListener('hashchange', onHash);
     window.addEventListener('blur', releaseAll);
     window.addEventListener('keydown', onKey);
     window.addEventListener('keyup', onKeyUp, true);
@@ -29,6 +36,7 @@ export function App() {
       window.removeEventListener('beforeunload', onLeave);
       clearInterval(timer);
       window.removeEventListener('focus', onFocus);
+      window.removeEventListener('hashchange', onHash);
       window.removeEventListener('blur', releaseAll);
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('keyup', onKeyUp, true);
