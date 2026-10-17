@@ -194,8 +194,8 @@ expansion. One place at a time avoids all of that.
 **Arranging.** Above the expanded lane's notes is a strip as tall as a band's label, where placements are handled
 like clips; inside a band, below the strip, is for notes. In the strip:
 
-- click a band to select it; drag to move it (by beats), Alt-drag to place a copy; ← → move it a row (a bar with
-  Shift), ↑ ↓ transpose it;
+- click a band to select it; drag to move it (by beats, or rows with Shift), Alt-drag to place a copy; ← → move it
+  a row (a bar with Shift), ↑ ↓ transpose it;
 - drag a band's right edge to make it play longer or shorter: past the pattern's end it repeats, and an end
   between repeats sets `len`. It snaps to beats, and to the song's end;
 - click an empty part of the strip to place the current pattern there, at the beat;

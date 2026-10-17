@@ -309,6 +309,13 @@ test('edits a pattern where it plays, changing every place, and arranges placeme
   await release(57.5);
   await page.keyboard.press('Control+s');
   await expect.poll(() => onDisk(page)).toContain('{ "row": 56, "pattern": "riff" }');
+  // Shift-drag moves it by rows: three to the left, where a plain drag would round to a beat.
+  await page.keyboard.down('Shift');
+  await press(57.5);
+  await release(54.5);
+  await page.keyboard.up('Shift');
+  await page.keyboard.press('Control+s');
+  await expect.poll(() => onDisk(page)).toContain('{ "row": 53, "pattern": "riff" }');
   // Make a pattern of the first note's beat.
   await page.mouse.click(at(1, E5).x, at(1, E5).y);
   await page.keyboard.press('Control+g');

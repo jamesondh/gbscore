@@ -363,9 +363,9 @@ export function Roll() {
         else if (e.button === 2) editSong((song) => setGlobal(song, row, {}));
         return;
       }
-      // The strip of placed patterns: click one to select it, drag to move it, Alt-drag to copy it, drag its right
-      // edge to make it play longer or shorter, right-click to remove it. A click where there's none places the
-      // current pattern there, at the beat.
+      // The strip of placed patterns: click one to select it, drag to move it (by rows with Shift), Alt-drag to copy
+      // it, drag its right edge to make it play longer or shorter, right-click to remove it. A click where there's
+      // none places the current pattern there, at the beat.
       const clip = clipAt(x, y);
       if (clip) {
         if (!clip.placed) {
@@ -608,7 +608,7 @@ export function Roll() {
       const rows = Math.round((x - d.x0) / view.rowWidth);
       if (d.kind === 'place') {
         const beat = useApp.getState().open?.song?.grid.rowsPerBeat ?? 1;
-        const by = Math.round(rows / beat) * beat; // placements move by beats
+        const by = e.shiftKey ? rows : Math.round(rows / beat) * beat; // placements move by beats, or rows with Shift
         arrangeGestureTo((song, lane) => (by ? movePlacement(song, lane, d.item, by, d.copy) : { song, placement: d.item }));
         return;
       }

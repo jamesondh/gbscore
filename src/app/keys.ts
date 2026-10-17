@@ -85,7 +85,7 @@ export const KEYS: { title: string; keys: [string, string][] }[] = [
     keys: [
       ['Cmd-G', 'Make a pattern of the beats the selected notes span'],
       ['In a pattern\'s band', 'Draw, select and edit its notes as any others; every place it plays changes'],
-      ['Click a pattern in the strip', 'Select it; drag to move it, Alt-drag to copy it; right-click removes it'],
+      ['Click a pattern in the strip', 'Select it; drag to move it by beats, Shift-drag by rows, Alt-drag to copy it; right-click removes it'],
       ['Drag its right edge', 'Play it longer, repeating, or shorter, cut short'],
       ['Click empty strip', 'Place the current pattern: the one last selected, made or picked in the Pattern menu'],
       ['With a pattern selected', '← → move it, ↑ ↓ transpose it, Delete removes it, Cmd-D places it again after itself'],
