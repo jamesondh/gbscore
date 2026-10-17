@@ -429,13 +429,13 @@ test("sets the song's length and loop from the ruler, cutting past a shorter end
   expect(saved.lanes.pulse1.map((n: { row: number }) => n.row)).toEqual([0, 40, 70]);
 });
 
-test("sets the song's title, artist, comment and grid from the View menu, and the ruler and note lengths follow", async ({ page }) => {
+test("sets the song's title, artist, comment and grid from the song menu, and the ruler and note lengths follow", async ({ page }) => {
   const at = await open(page);
   const canvas = page.locator('canvas');
   const ruler = (await canvas.boundingBox())!.y + 10;
   await expect(page.getByRole('button', { name: 'Note length: 1 beat' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'View' }).click();
+  await page.getByRole('button', { name: 'tune' }).click();
   await page.getByRole('menuitem', { name: 'Song settings…' }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Title').fill('Tune');
@@ -461,7 +461,7 @@ test("sets the song's title, artist, comment and grid from the View menu, and th
 
 test("sets the groove from song settings, refusing one the loop row can't keep in phase", async ({ page }) => {
   await open(page, formatSong({ ...parsed.song, loop: 2 }));
-  await page.getByRole('button', { name: 'View' }).click();
+  await page.getByRole('button', { name: 'tune' }).click();
   await page.getByRole('menuitem', { name: 'Song settings…' }).click();
   const dialog = page.getByRole('dialog');
   // 6 ticks a row at 4 rows a beat.

@@ -8,7 +8,6 @@ import {
   Play,
   Plus,
   Repeat,
-  Save,
   Square,
   Volume2,
 } from 'lucide-react';
@@ -39,6 +38,7 @@ import {
 } from './components/ui/dropdown-menu.tsx';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './components/ui/dialog.tsx';
 import { canOpenFolders, songTitle } from './files.ts';
+import logo from './logo.svg';
 import { bestRoot, ROOTS, SCALES, type ScaleKind, scaleName } from './scales.ts';
 import {
   addInstrument,
@@ -68,58 +68,13 @@ function mayDiscard(): boolean {
 }
 
 export function Toolbar() {
-  const folder = useApp((s) => s.folder);
-  const songs = useApp((s) => s.songs);
-  const open = useApp((s) => s.open);
   const playing = useApp((s) => s.playing);
-  const canPlay = !!open?.playable;
-  const dirty = unsaved(open);
-  const title = open ? songTitle(open.name) : 'No song';
+  const canPlay = !!useApp((s) => s.open?.playable);
 
   return (
     <div role="toolbar" aria-label="Toolbar" className="flex h-11 shrink-0 items-center gap-1 border-b px-2 *:shrink-0">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" title={folder?.name ? `${title} in ${folder.name}` : title} className="font-medium">
-            <FileMusic />
-            <span className="max-w-32 truncate xl:max-w-48">{title}</span>
-            {dirty && <span title="Unsaved edits" aria-label="Unsaved edits" className="size-1.5 shrink-0 rounded-full bg-primary" />}
-            <ChevronDown />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="max-h-96" onCloseAutoFocus={(e) => e.preventDefault()}>
-          <DropdownMenuItem onSelect={() => mayDiscard() && void chooseFile()}>Open a song file…</DropdownMenuItem>
-          <DropdownMenuItem disabled={!canOpenFolders()} onSelect={() => mayDiscard() && void chooseFolder()}>
-            {folder ? 'Open another folder…' : 'Open a folder…'}
-          </DropdownMenuItem>
-          {folder && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Songs in {folder.name || 'the folder'}</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={open?.name} onValueChange={(name) => mayDiscard() && void openSong(name)}>
-                {songs.map((name) => (
-                  <DropdownMenuRadioItem key={name} value={name}>
-                    {songTitle(name)}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => void startProbe()}>Check folder access</DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Button
-        size="sm"
-        variant="ghost"
-        disabled={folder ? !dirty : !open?.song || open.broken}
-        onClick={() => void save()}
-        aria-label={folder ? 'Save' : 'Download'}
-        title={folder ? 'Save (Cmd-S)' : 'Download (Cmd-S)'}
-      >
-        <Save />
-        <span className="hidden xl:inline">{folder ? 'Save' : 'Download'}</span>
-      </Button>
+      <img src={logo} alt="" className="mx-1 size-6" />
+      <SongMenu />
 
       <Divider />
       <Button
@@ -154,6 +109,61 @@ export function Toolbar() {
 /** Between the toolbar's groups. */
 function Divider() {
   return <div className="mx-1 h-5 w-px bg-border" />;
+}
+
+/** The song's name: saves it (or downloads it, with no folder open), opens its settings, and opens a song file or a
+ * folder, listing the folder's songs. */
+function SongMenu() {
+  const [settings, setSettings] = useState(false);
+  const folder = useApp((s) => s.folder);
+  const songs = useApp((s) => s.songs);
+  const open = useApp((s) => s.open);
+  const dirty = unsaved(open);
+  const title = open ? songTitle(open.name) : 'No song';
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" title={folder?.name ? `${title} in ${folder.name}` : title} className="font-medium">
+            <FileMusic />
+            <span className="max-w-32 truncate xl:max-w-48">{title}</span>
+            {dirty && <span title="Unsaved edits" aria-label="Unsaved edits" className="size-1.5 shrink-0 rounded-full bg-primary" />}
+            <ChevronDown />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="max-h-96 w-56" onCloseAutoFocus={(e) => e.preventDefault()}>
+          <DropdownMenuItem disabled={folder ? !dirty : !open?.song || open.broken} onSelect={() => void save()}>
+            {folder ? 'Save' : 'Download'}
+            <DropdownMenuShortcut>Cmd-S</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={!open?.song} onSelect={() => setSettings(true)}>
+            Song settings…
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => mayDiscard() && void chooseFile()}>Open a song file…</DropdownMenuItem>
+          <DropdownMenuItem disabled={!canOpenFolders()} onSelect={() => mayDiscard() && void chooseFolder()}>
+            {folder ? 'Open another folder…' : 'Open a folder…'}
+          </DropdownMenuItem>
+          {folder && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Songs in {folder.name || 'the folder'}</DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={open?.name} onValueChange={(name) => mayDiscard() && void openSong(name)}>
+                {songs.map((name) => (
+                  <DropdownMenuRadioItem key={name} value={name}>
+                    {songTitle(name)}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => void startProbe()}>Check folder access</DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <SongSettings open={settings} onOpenChange={setSettings} />
+    </>
+  );
 }
 
 /** The instrument new notes in the expanded lane get. Clicking a note picks its instrument too. New instrument
@@ -226,10 +236,8 @@ function LoopToggle() {
   );
 }
 
-/** Settings you change once a session: ghost notes, the instrument panel, the scale shaded, and the song's
- * settings. */
+/** Settings you change once a session: ghost notes, the instrument panel and the scale shaded. */
 function ViewMenu() {
-  const [settings, setSettings] = useState(false);
   const panel = useApp((s) => s.panel);
   const ghosts = useApp((s) => s.ghosts);
   const song = useApp((s) => s.open?.song);
@@ -238,65 +246,58 @@ function ViewMenu() {
     song &&
     setScale(v === 'off' ? undefined : { kind: v as ScaleKind, root: scale?.root ?? bestRoot(song, v as ScaleKind) });
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" aria-label="View" title="View">
-            <Eye />
-            <span className="hidden xl:inline">View</span>
-            <ChevronDown />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56" onCloseAutoFocus={(e) => e.preventDefault()}>
-          <DropdownMenuCheckboxItem checked={ghosts} onCheckedChange={(on) => setGhosts(on)}>
-            Ghost notes
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked={panel} onCheckedChange={(on) => setPanel(on)}>
-            Instrument panel
-            <DropdownMenuShortcut>I</DropdownMenuShortcut>
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger disabled={!song}>Scale: {scale ? scaleName(scale) : 'off'}</DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
-              <DropdownMenuRadioGroup value={scale?.kind ?? 'off'} onValueChange={setKind}>
-                <DropdownMenuRadioItem value="off">Off</DropdownMenuRadioItem>
-                {Object.entries(SCALES).map(([kind, { name }]) => (
-                  <DropdownMenuRadioItem key={kind} value={kind}>
-                    {name}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-              {scale && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>Root: {ROOTS[scale.root]}</DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuRadioGroup
-                        value={String(scale.root)}
-                        onValueChange={(v) => setScale({ ...scale, root: Number(v) })}
-                      >
-                        {ROOTS.map((name, root) => (
-                          <DropdownMenuRadioItem key={name} value={String(root)}>
-                            {name}
-                          </DropdownMenuRadioItem>
-                        ))}
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                </>
-              )}
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem disabled={!song} onSelect={() => setSettings(true)}>
-            Song settings…
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <SongSettings open={settings} onOpenChange={setSettings} />
-    </>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" aria-label="View" title="View">
+          <Eye />
+          <span className="hidden xl:inline">View</span>
+          <ChevronDown />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56" onCloseAutoFocus={(e) => e.preventDefault()}>
+        <DropdownMenuCheckboxItem checked={ghosts} onCheckedChange={(on) => setGhosts(on)}>
+          Ghost notes
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem checked={panel} onCheckedChange={(on) => setPanel(on)}>
+          Instrument panel
+          <DropdownMenuShortcut>I</DropdownMenuShortcut>
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger disabled={!song}>Scale: {scale ? scaleName(scale) : 'off'}</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuRadioGroup value={scale?.kind ?? 'off'} onValueChange={setKind}>
+              <DropdownMenuRadioItem value="off">Off</DropdownMenuRadioItem>
+              {Object.entries(SCALES).map(([kind, { name }]) => (
+                <DropdownMenuRadioItem key={kind} value={kind}>
+                  {name}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+            {scale && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Root: {ROOTS[scale.root]}</DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuRadioGroup
+                      value={String(scale.root)}
+                      onValueChange={(v) => setScale({ ...scale, root: Number(v) })}
+                    >
+                      {ROOTS.map((name, root) => (
+                        <DropdownMenuRadioItem key={name} value={String(root)}>
+                          {name}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </>
+            )}
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

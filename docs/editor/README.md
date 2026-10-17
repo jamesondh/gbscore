@@ -381,27 +381,29 @@ choose.
 - **Toolbar:** one row above the roll. These rules keep it from growing into a mess as controls are added.
   - **It fits.** From 1024 px wide up, with long song and instrument names, every control is on the screen, on
     one row. `test/app/toolbar.e2e.ts` checks this at 1024, 1280 and 1920 px.
-  - **Groups, in order:** file (song, Save), transport (Play, Loop, position), pen (instrument, note
+  - **Groups, in order:** the logo, file (the song menu), transport (Play, Loop, position), pen (instrument, note
     length, patterns: what a click or key adds), input (note entry, Play keys, hearing), view (a menu), then
     the list of keys at the far right. A divider sits between groups. A new control joins a group; one that fits
     none probably belongs in a menu, or beside what it acts on (a lane header, the panel), not the bar.
   - **Earn the space.** A button in the bar is one used several times a session. Settings set once a session go
-    in the View menu (ghost notes, the instrument panel, the scale), especially when the roll already shows
-    them.
+    in a menu: the View menu for the view (ghost notes, the instrument panel, the scale), especially when the
+    roll already shows them, and the song menu for the song (its settings). Save is used often, but Cmd-S and the
+    unsaved dot on the song's name cover it, so it's in the song menu too.
   - **Controls and their state, nothing else.** Messages, errors and playback diagnostics go in the status line
     under everything, always there so the roll doesn't jump. Explanations go in tooltips or the list of keys.
     What the computer keyboard plays shows on the roll's keyboard, not as text.
-  - **One look for each kind of control.** An action shows an icon and a verb (Play, Save). A toggle shows an icon
+  - **One look for each kind of control.** An action shows an icon and a verb (Play). A toggle shows an icon
     only, filled when on, and its icon doesn't change. A picker shows its value and a chevron, with no prefix
     ("1 lead", "1 beat"); a swatch or icon says what it is. A menu with no value shows a noun (Pattern, View). A
     readout is just the value (`1.1.1`).
-  - **The song menu** is the song's name: it opens a song file or a folder, and with a folder open lists its
-    songs and checks folder access. There's no folder button: a song opened from a file has no folder, and the
-    folder's name is in the menu and the tooltip, while Save or Download says which kind is open.
+  - **The song menu** is the song's name: it saves the song (Download, with no folder open), opens its settings,
+    opens a song file or a folder, and with a folder open lists its songs and checks folder access. There's no
+    folder button: a song opened from a file has no folder, and the folder's name is in the menu and the tooltip,
+    while Save or Download says which kind is open.
   - **Tooltips** are a name and a shortcut on one line: "Note entry (M)". Every control without words has an
     `aria-label`.
-  - **Narrow screens** lose words before controls: names truncate, then below 1280 px the words on Save,
-    Pattern and View drop to their icons. Nothing goes off the screen or wraps.
+  - **Narrow screens** lose words before controls: names truncate, then below 1280 px the words on Pattern
+    and View drop to their icons. Nothing goes off the screen or wraps.
 - **Editing:**
   - Draw, select, move and resize notes. Copy, paste and duplicate.
   - Transpose a selection by a semitone or an octave.
@@ -445,7 +447,7 @@ choose.
     - Changes the compiler would reject are refused with its message: a loop at or past the end, a loop that isn't a
       multiple of 4 with a non-uniform groove, or more than the driver's 127 orders. `rangeErrors` in
       `src/core/compile.ts` is the one place those are checked.
-  - **Song settings.** The View menu's "Song settings…" opens a dialog with the title, artist and comment, and the
+  - **Song settings.** The song menu's "Song settings…" opens a dialog with the title, artist and comment, and the
     grid's rows per beat and beats per bar, set together with Enter or Set as one step of undo. Blank text leaves
     its key out of the file. The grid is display only (rule 6), so a change can't make the song fail to compile:
     the roll, the ruler, positions and the note lengths follow it, and a pen's length picked from the toolbar's
@@ -453,7 +455,7 @@ choose.
     rows. Where a grid makes two choices the same length (on 1 row a beat and 1 beat a bar, a beat is a bar), the
     pen becomes the one the picker names it by, so going back may not bring the old choice back; the picker shows
     what it is. Undo doesn't keep the pens' history for this: they're view state, and such grids are rare. It's in
-    the View menu, not the toolbar, since it's set once a session at most. The length and loop stay on the ruler,
+    the song menu, not the toolbar, since it's set once a session at most. The length and loop stay on the ruler,
     beside what they act on.
     - The dialog also sets the groove, the four ticks a row the song plays at until its first tempo change, in the
       same step of undo. Under it, the BPM the four steps average to at the grid's rows per beat, as tempo shows,

@@ -48,7 +48,8 @@ test('opens a song from a file and saves it as a download, without folder access
   await expect(page.getByText('Downloaded tune.gbscore.json.')).toBeVisible();
   await expect(page.getByLabel('Unsaved edits')).toBeVisible();
   const again = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Download' }).click();
+  await page.getByRole('button', { name: 'tune' }).click();
+  await page.getByRole('menuitem', { name: 'Download' }).click();
   expect((await again).suggestedFilename()).toBe('tune.gbscore.json');
 
   // The next visit reopens the song as it was last downloaded, with nothing unsaved.

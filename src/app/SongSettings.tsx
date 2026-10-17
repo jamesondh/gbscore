@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from './compone
 import { bpm } from './effects.ts';
 import { grooveError, setInfo, useApp } from './store.ts';
 
-// The song settings dialog, from the View menu (docs/editor/, "Song settings"): the title, artist and comment the
+// The song settings dialog, from the song menu (docs/editor/, "Song settings"): the title, artist and comment the
 // file keeps for people, the grid the roll, the ruler and the note lengths follow, and the groove the song plays at
 // until its first tempo change.
 
