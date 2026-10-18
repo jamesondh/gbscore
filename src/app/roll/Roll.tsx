@@ -10,6 +10,7 @@ import { noteIndex } from '../song.ts';
 import {
   arrangeGestureTo,
   audible,
+  cancelGesture,
   edit,
   editSong,
   endGesture,
@@ -214,6 +215,48 @@ export function Roll() {
     };
     el.addEventListener('wheel', onWheel, { passive: false });
 
+    // Two fingers scroll the roll, both ways, and pinch to zoom its rows, as two on a trackpad do; one finger edits,
+    // as the mouse does. A second finger takes back what the first had begun, such as a note it drew.
+    const touches = new Map<number, { x: number; y: number }>();
+    let pinch: { rect: DOMRect; x: number; y: number; apart: number; view: View; pitchTop: number } | undefined;
+    let pinched = false; // since two fingers came down: the fingers left do nothing until they're all lifted
+    const startPinch = () => {
+      const [a, b] = [...touches.values()];
+      if (!pinched) {
+        const d = drag;
+        drag = undefined;
+        if (d?.kind === 'key') release('pointer');
+        else if (d) cancelGesture();
+        setPop(undefined);
+        setRulerAt(undefined);
+        pinched = true;
+        dirty = true;
+      }
+      const { view } = useApp.getState();
+      const box = laneBoxes(height, view.expanded).find((b) => b.expanded)!;
+      pinch = {
+        rect: el.getBoundingClientRect(),
+        x: (a!.x + b!.x) / 2,
+        y: (a!.y + b!.y) / 2,
+        apart: Math.max(1, Math.hypot(a!.x - b!.x, a!.y - b!.y)),
+        view,
+        pitchTop: clampPitchTop(box, view.pitchTop[box.lane]),
+      };
+    };
+    const movePinch = (p: NonNullable<typeof pinch>) => {
+      const [a, b] = [...touches.values()];
+      const x = (a!.x + b!.x) / 2;
+      const y = (a!.y + b!.y) / 2;
+      const factor = Math.hypot(a!.x - b!.x, a!.y - b!.y) / p.apart;
+      // The row under the fingers when they came down stays under them, and so does the pitch.
+      const z = zoomAt(p.view, Math.max(GUTTER, p.x - p.rect.left), factor);
+      const length = useApp.getState().open?.song?.length ?? 0;
+      const scrollRow = clampScroll({ ...p.view, ...z }, width, length, z.scrollRow - (x - p.x) / z.rowWidth);
+      const box = laneBoxes(height, p.view.expanded).find((b) => b.expanded)!;
+      const pitchTop = clampPitchTop(box, p.pitchTop + (y - p.y) / NOTE_HEIGHT);
+      setView({ rowWidth: z.rowWidth, scrollRow, pitchTop: { ...useApp.getState().view.pitchTop, [box.lane]: pitchTop } });
+    };
+
     // Where the canvas was when a drag began. A press can show or hide the bar above the roll, moving the canvas;
     // measuring the drag from where it began keeps that from reading as the pointer moving.
     let pressedAt: DOMRect | undefined;
@@ -314,6 +357,11 @@ export function Roll() {
     // pen's length along the drag, each at the pitch under the pointer. On the ruler, a click moves the flag, a
     // drag loops the beats it covers, and a right-click sets the song's length and loop at the nearest beat.
     const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') {
+        touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (touches.size >= 2) startPinch();
+        if (pinched) return;
+      }
       const { view, open, pen } = useApp.getState();
       pressedAt = el.getBoundingClientRect();
       const { x, y } = at(e);
@@ -505,6 +553,11 @@ export function Roll() {
     };
 
     const onPointerMove = (e: PointerEvent) => {
+      if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinched) {
+        if (pinch && touches.has(e.pointerId)) movePinch(pinch);
+        return;
+      }
       const { x, y } = at(e);
       if (!drag) {
         const target = hover(x, y);
@@ -646,6 +699,13 @@ export function Roll() {
     };
 
     const onPointerUp = (e: PointerEvent) => {
+      if (touches.delete(e.pointerId) && pinched) {
+        // From where the fingers left are now, so the view doesn't jump.
+        if (touches.size >= 2) startPinch();
+        else pinch = undefined;
+        if (!touches.size) pinched = false;
+        return;
+      }
       const d = drag;
       drag = undefined;
       if (!d) return;
@@ -697,7 +757,7 @@ export function Roll() {
 
   return (
     <div ref={wrap} className="relative min-h-0 flex-1 overflow-hidden">
-      <canvas ref={canvas} className="absolute inset-0" />
+      <canvas ref={canvas} className="absolute inset-0 touch-none" />
       <LaneButtons height={size} />
       <RowEdit pop={pop} onChange={setPop} />
       <LengthEdit row={rulerAt} onClose={() => setRulerAt(undefined)} />

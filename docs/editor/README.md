@@ -361,6 +361,10 @@ choose.
     a new edit clears redo, and reloading a file changed from outside clears history, so undo can't bring back
     the old version over someone else's edit.
   - The view (scroll, zoom, selection, which lane is expanded) is kept apart from the song (rule 3).
+- **Touch:** on a touch screen, one finger edits as the mouse does, and two scroll the roll both ways and pinch to
+  zoom its rows, as on a trackpad. A second finger takes back what the first had begun, such as a note it drew,
+  and the fingers left do nothing until all are lifted. Not yet: the toolbar on a phone's width, and a way to
+  delete, undo or copy without keys or right-click.
 - **Layout:** the four lanes stacked, with one expanded. Below them, a global lane for tempo and panning, then
   instrument and wave editors. The playhead follows playback.
   - **Ghost notes**, as in FL Studio: the expanded pulse or wave lane shows the other pulse and wave lanes' notes

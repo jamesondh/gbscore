@@ -522,3 +522,35 @@ test('makes the selected note legato with L, and normal again, each one step of 
   await page.keyboard.press('Control+s');
   await expect.poll(() => onDisk(page)).toContain('"legato": true');
 });
+
+test.describe('on a touch screen', () => {
+  test.use({ hasTouch: true });
+
+  test('two fingers scroll and zoom the roll, taking back the note the first one drew', async ({ page }) => {
+    const at = await open(page);
+    const cdp = await page.context().newCDPSession(page);
+    const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', points: { x: number; y: number }[]) =>
+      cdp.send('Input.dispatchTouchEvent', { type, touchPoints: points.map((p, id) => ({ ...p, id })) });
+    /** One finger down, then a second, both moved to where they end, and both lifted. */
+    const twoFingers = async (from: { x: number; y: number }[], to: { x: number; y: number }[]) => {
+      await touch('touchStart', [from[0]!]); // draws a note, as a click would
+      await touch('touchStart', from);
+      await touch('touchMove', to);
+      await touch('touchEnd', []);
+    };
+    const down = (p: { x: number; y: number }, by: number) => ({ x: p.x, y: p.y + by });
+
+    // Both fingers 10 rows left and two semitones down: the roll follows them.
+    await twoFingers([at(20, E5), at(30, E5)], [down(at(10, E5), 24), down(at(20, E5), 24)]);
+    await expect(page.getByLabel('Unsaved edits')).toBeHidden();
+    // Spread twice as far apart about row 15 on the screen, now row 25: rows are twice as wide, and row 25 stays put.
+    await twoFingers([at(10, E5), at(20, E5)], [at(5, E5), at(25, E5)]);
+    await expect(page.getByLabel('Unsaved edits')).toBeHidden();
+
+    const x = at(15, E5).x + 2 * ROW * 1.5; // a row and a half to the right of row 25, at twice the width
+    await page.mouse.click(x, at(15, E5).y);
+    await page.keyboard.press('Control+s');
+    await expect.poll(() => onDisk(page)).toMatch(/\{ "row": 26, "len": \d+, "note": "F#5", "inst": 1 \}/);
+    expect((await onDisk(page)).match(/"row"/g)?.length).toBe(3); // the two notes in the song, and the one clicked
+  });
+});

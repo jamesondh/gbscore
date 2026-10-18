@@ -38,10 +38,10 @@ npm run test:app   # builds it and runs the browser tests in headless Chromium
 
 Open a folder of `.gbscore.json` files, pick a song, and press Space to play from the flag (click the ruler to move
 it). Right-click the ruler to end the song there or loop back to there, or to set its length and loop by number.
-Scroll with two fingers or the wheel, Shift for sideways, and pinch or Ctrl-wheel to zoom. Click a lane to
-expand it. In the expanded lane, click to draw a note and drag to set its length; drag notes to move them, or their
-ends to resize them. Press M for note entry: then the keys from A to K, and a MIDI keyboard, play notes in at the
-flag. Notes are heard as you enter, draw or click them (the speaker button turns that off). The strip along the
+Scroll with two fingers (on a trackpad or a touch screen) or the wheel, Shift for sideways, and pinch or Ctrl-wheel
+to zoom. Click a lane to expand it. In the expanded lane, click to draw a note and drag to set its length; drag notes
+to move them, or their ends to resize them. Press M for note entry: then the keys from A to K, and a MIDI keyboard,
+play notes in at the flag. Notes are heard as you enter, draw or click them (the speaker button turns that off). The strip along the
 bottom of the expanded lane holds each row's effect, and the Song lane under the lanes holds tempo, pan and master
 volume: click a row in either to edit it, right-click to clear it. Drag along the effects to draw volume on the
 notes, as velocity; Shift-click or Shift-drag selects effects apart from their notes, to move, copy or delete them.

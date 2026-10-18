@@ -827,12 +827,15 @@ export function setInfo(info: SongInfo): boolean {
 
 // A gesture, such as a drag, changes the song as it goes and becomes one step of undo when it ends. Each change
 // starts again from the song as it was, so a drag can go back to where it began.
-let gesture: { name: string; base: Song; selection: LaneItem[]; fxSelection: number[]; shown: Song } | undefined;
+let gesture:
+  | { name: string; base: Song; selection: LaneItem[]; fxSelection: number[]; placement: AppState['placement']; shown: Song }
+  | undefined;
 
 export function startGesture(): boolean {
   endGesture();
   const open = editable();
-  gesture = open && { name: open.name, base: open.song, selection: get().selection, fxSelection: get().fxSelection, shown: open.song };
+  const { selection, fxSelection, placement } = get();
+  gesture = open && { name: open.name, base: open.song, selection, fxSelection, placement, shown: open.song };
   return !!gesture;
 }
 
@@ -882,6 +885,16 @@ export function endGesture() {
   const open = get().open;
   if (!g || !open?.song || open.song !== g.shown || g.shown === g.base) return;
   commit(open, g.base, open.song, get().selection, { placement: get().placement, fxSelection: get().fxSelection });
+}
+
+/** Ends the gesture under way with the song as it was before it, as when a second finger turns a drag into a
+ * pinch. Not a step of undo. */
+export function cancelGesture() {
+  const g = gesture;
+  gesture = undefined;
+  const open = get().open;
+  if (!g || !open || open.name !== g.name || open.song !== g.shown) return;
+  set({ open: { ...open, song: g.base }, selection: g.selection, fxSelection: g.fxSelection, placement: g.placement });
 }
 
 export function undo() {
