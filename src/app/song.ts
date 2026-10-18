@@ -9,6 +9,7 @@ export interface Playable {
   data: DriverSong;
   orderStarts: number[];
   length: number;
+  size: number; // the compiled song's bytes
 }
 
 export interface Loaded {
@@ -34,7 +35,7 @@ export function load(text: string): Loaded {
 export function check(song: Song): { errors: SongError[]; playable?: Playable } {
   const c = compile(song);
   if (!c.ok) return { errors: c.errors };
-  return { errors: [], playable: { data: c.data, orderStarts: c.layout.orderStarts, length: song.length } };
+  return { errors: [], playable: { data: c.data, orderStarts: c.layout.orderStarts, length: song.length, size: c.size } };
 }
 
 /** A note name's index, C3 = 0. Names the schema accepts but the compiler rejects count as C3. */

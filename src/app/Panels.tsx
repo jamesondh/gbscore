@@ -1,4 +1,5 @@
 import { FileMusic, FolderOpen } from 'lucide-react';
+import { BANK_SIZE } from '../core/compile.ts';
 import { formatError } from '../core/location.ts';
 import { LANES, type LaneName } from '../core/schema.ts';
 import { Button } from './components/ui/button.tsx';
@@ -157,6 +158,8 @@ export function StatusLine() {
   const reloadedAt = useApp((s) => s.reloadedAt);
   const lost = useApp((s) => s.lostAccess);
   const folder = useApp((s) => s.folder);
+  const open = useApp((s) => s.open);
+  const size = open && !open.errors.length ? open.playable?.size : undefined;
   const parts: string[] = [];
   if (seekMs !== undefined) parts.push(`started in ${seekMs} ms`);
   if (underruns) parts.push(`${underruns} audio gaps`);
@@ -174,6 +177,14 @@ export function StatusLine() {
         </span>
       )}
       {parts.length > 0 && <span className="ml-auto shrink-0 text-muted-foreground">{parts.join(' · ')}</span>}
+      {size !== undefined && (
+        <span
+          title="The compiled song's size in the game's ROM"
+          className={`shrink-0 ${parts.length ? '' : 'ml-auto '}${size > BANK_SIZE ? 'text-destructive' : 'text-muted-foreground'}`}
+        >
+          {size.toLocaleString('en-US')} bytes{size > BANK_SIZE && `, over one ${BANK_SIZE / 1024} KB bank`}
+        </span>
+      )}
     </div>
   );
 }

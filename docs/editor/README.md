@@ -630,6 +630,8 @@ choose.
   since the app can't tell whether it finished, so closing the tab still asks first. Opening a file closes the
   folder. The app keeps the song's text, as opened or last downloaded, in local storage and reopens it on the next
   visit; opening a folder forgets it.
+- **Size:** the status line gives the compiled song's bytes, as `gbscore check` does, in red over one 16 KB bank.
+  There's no budget to set: that would go in the song file, and the command line's `--budget` covers a build.
 - **Share links:** the song menu's Copy share link copies a link with the song in it, as it is, unsaved edits
   and all, so sharing needs no server or storage (`src/app/share.ts`).
   - The song's JSON, minified, deflated (zlib, with the browser's `CompressionStream`, so its checksum catches a
