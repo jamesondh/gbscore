@@ -363,8 +363,8 @@ choose.
   - The view (scroll, zoom, selection, which lane is expanded) is kept apart from the song (rule 3).
 - **Touch:** on a touch screen, one finger edits as the mouse does, and two scroll the roll both ways and pinch to
   zoom its rows, as on a trackpad. A second finger takes back what the first had begun, such as a note it drew,
-  and the fingers left do nothing until all are lifted. Not yet: the toolbar on a phone's width, and a way to
-  delete, undo or copy without keys or right-click.
+  and the fingers left do nothing until all are lifted. Not yet: a way to delete, undo or copy without keys or
+  right-click.
 - **Layout:** the four lanes stacked, with one expanded. Below them, a global lane for tempo and panning, then
   instrument and wave editors. The playhead follows playback.
   - **Ghost notes**, as in FL Studio: the expanded pulse or wave lane shows the other pulse and wave lanes' notes
@@ -382,9 +382,11 @@ choose.
     0.2 s). The emulator leaves the channels out of its mix (binjgb's `disable_sound`), so the driver still plays
     them, the snapshots stay good, and the song doesn't recompile. Notes heard while editing always sound. A view
     setting, not saved.
-- **Toolbar:** one row above the roll. These rules keep it from growing into a mess as controls are added.
+- **Toolbar:** above the roll, one row from 1024 px wide up and two on a tablet or a phone. These rules keep it
+  from growing into a mess as controls are added.
   - **It fits.** From 1024 px wide up, with long song and instrument names, every control is on the screen, on
-    one row. `test/app/toolbar.e2e.ts` checks this at 1024, 1280 and 1920 px.
+    one row. Narrower, down to a 390 px phone, they wrap onto a second row. `test/app/toolbar.e2e.ts` checks this
+    at 390, 768, 1024, 1280 and 1920 px.
   - **Groups, in order:** the logo (it opens About: what gbscore is, who made it, the source on GitHub and the
     commit the build is from), file (the song menu), transport (Play, Loop, position), pen (instrument, note
     length, patterns: what a click or key adds), input (note entry, Play keys, hearing), view (a menu), then
@@ -409,7 +411,10 @@ choose.
   - **Tooltips** are a name and a shortcut on one line: "Note entry (M)". Every control without words has an
     `aria-label`.
   - **Narrow screens** lose words before controls: names truncate, then below 1280 px the words on Pattern
-    and View drop to their icons. Nothing goes off the screen or wraps.
+    and View drop to their icons. Below 1024 px the groups wrap onto a second row, whole, with Play on the first;
+    the dividers go, since one could be left at a row's end, and a wider gap divides the groups instead. Below
+    640 px, for a phone, names truncate further, the buttons lose some padding, and Pattern and View lose their
+    chevrons. Nothing goes off the screen.
 - **Editing:**
   - Draw, select, move and resize notes. Copy, paste and duplicate.
   - Transpose a selection by a semitone or an octave.

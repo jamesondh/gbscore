@@ -11,7 +11,7 @@ import {
   Square,
   Volume2,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { position } from '../core/location.ts';
 import { LANE_KIND, type Song } from '../core/schema.ts';
 import { toggleEntry, togglePlayKeys } from './entry.ts';
@@ -82,43 +82,60 @@ export function Toolbar() {
   const canPlay = !!useApp((s) => s.open?.playable);
 
   return (
-    <div role="toolbar" aria-label="Toolbar" className="flex h-11 shrink-0 items-center gap-1 border-b px-2 *:shrink-0">
-      <About />
-      <SongMenu />
+    <div role="toolbar" aria-label="Toolbar" className="flex shrink-0 flex-wrap items-center gap-x-2 border-b px-2 max-sm:[&_button]:px-1.5 lg:gap-x-1">
+      <Group>
+        <About />
+        <SongMenu />
+      </Group>
 
       <Divider />
-      <Button
-        size="sm"
-        variant={playing ? 'secondary' : 'default'}
-        disabled={!canPlay && !playing}
-        onClick={togglePlay}
-        title={playing ? 'Stop (Space)' : 'Play (Space)'}
-      >
-        {playing ? <Square /> : <Play />}
-        {playing ? 'Stop' : 'Play'}
-      </Button>
-      <LoopToggle />
-      <Position />
+      <Group>
+        <Button
+          size="sm"
+          variant={playing ? 'secondary' : 'default'}
+          disabled={!canPlay && !playing}
+          onClick={togglePlay}
+          title={playing ? 'Stop (Space)' : 'Play (Space)'}
+        >
+          {playing ? <Square /> : <Play />}
+          {playing ? 'Stop' : 'Play'}
+        </Button>
+        <LoopToggle />
+        <Position />
+      </Group>
 
       <Divider />
-      <InstrumentPicker />
-      <LengthPicker />
-      <PatternMenu />
+      <Group>
+        <InstrumentPicker />
+        <LengthPicker />
+        <PatternMenu />
+      </Group>
 
       <Divider />
-      <Entry />
+      <Group>
+        <Entry />
+      </Group>
 
       <Divider />
-      <ViewMenu />
-      <div className="flex-1" />
-      <Keys />
+      <Group>
+        <ViewMenu />
+      </Group>
+      <Group className="ml-auto">
+        <Keys />
+      </Group>
     </div>
   );
 }
 
-/** Between the toolbar's groups. */
+/** One of the toolbar's groups, which wraps onto the next row whole on a narrow screen. */
+function Group({ className = '', children }: { className?: string; children: ReactNode }) {
+  return <div className={`flex h-10.75 shrink-0 items-center gap-1 ${className}`}>{children}</div>;
+}
+
+/** Between the toolbar's groups, on one row from 1024 px up. Below that the groups may wrap, and a gap divides them
+ * instead, so no divider is left at a row's start or end. */
 function Divider() {
-  return <div className="mx-1 h-5 w-px bg-border" />;
+  return <div className="mx-1 hidden h-5 w-px shrink-0 bg-border lg:block" />;
 }
 
 /** The song's name: saves it (or downloads it, with no folder open), copies a link to it, opens its settings,
@@ -136,7 +153,7 @@ function SongMenu() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" title={folder?.name ? `${title} in ${folder.name}` : title} className="font-medium">
             <FileMusic />
-            <span className="max-w-32 truncate xl:max-w-48">{title}</span>
+            <span className="max-w-20 truncate sm:max-w-32 xl:max-w-48">{title}</span>
             {dirty && <span title="Unsaved edits" aria-label="Unsaved edits" className="size-1.5 shrink-0 rounded-full bg-primary" />}
             <ChevronDown />
           </Button>
@@ -208,7 +225,7 @@ function InstrumentPicker() {
           title="Instrument for new notes"
         >
           {chosen && <Swatch inst={chosen.id} />}
-          <span className="max-w-24 truncate xl:max-w-36">{chosen ? label(chosen) : instruments.length ? `${pen.inst} (none)` : 'none'}</span>
+          <span className="max-w-8 truncate sm:max-w-24 xl:max-w-36">{chosen ? label(chosen) : instruments.length ? `${pen.inst} (none)` : 'none'}</span>
           <ChevronDown />
         </Button>
       </DropdownMenuTrigger>
@@ -273,7 +290,7 @@ function ViewMenu() {
         <Button variant="ghost" size="sm" aria-label="View" title="View">
           <Eye />
           <span className="hidden xl:inline">View</span>
-          <ChevronDown />
+          <ChevronDown className="max-sm:hidden" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56" onCloseAutoFocus={(e) => e.preventDefault()}>

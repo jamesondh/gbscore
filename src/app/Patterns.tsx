@@ -33,7 +33,7 @@ export function PatternMenu() {
         <Button variant="ghost" size="sm" aria-label="Pattern" title="Patterns (Cmd-G makes one)">
           <Boxes />
           <span className="hidden xl:inline">Pattern</span>
-          <ChevronDown />
+          <ChevronDown className="max-sm:hidden" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-96 w-auto" onCloseAutoFocus={(e) => e.preventDefault()}>

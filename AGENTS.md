@@ -57,9 +57,10 @@ rest.
   uge2source writes from the same hUGETracker pin, and `test/play.test.ts` plays the songs on the patched driver
   and checks their timing and sound-register logs. If you have `test/private/`, its tests check more songs the
   same way.
-- **The editor's toolbar fits on one row from 1024 px wide up.** It outgrew a 1280 px screen, and at 1024 px
-  pushed Save and the list of keys off the edge, before anyone noticed. Add to it by the rules in
-  `docs/editor/README.md` ("Toolbar"). Check: `test/app/toolbar.e2e.ts`.
+- **The editor's toolbar fits on one row from 1024 px wide up, and on two down to a 390 px phone.** It outgrew a
+  1280 px screen, and at 1024 px pushed Save and the list of keys off the edge, before anyone noticed. Below 1024
+  px its groups wrap, whole, with Play on the first row. Add to it by the rules in `docs/editor/README.md`
+  ("Toolbar"). Check: `test/app/toolbar.e2e.ts`.
 
 ## Checks
 
