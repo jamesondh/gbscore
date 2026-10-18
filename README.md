@@ -53,7 +53,8 @@ current pattern there. The bar above the roll sets a selected one's transpose, r
 unique and Unpack. **Pattern** in the toolbar makes a pattern of the beats the selected notes span (Cmd-G), or picks
 the current pattern. **Keys** in the toolbar lists the rest. Cmd-S saves. **Copy share link**, in the song menu,
 copies a link with the song in it, so whoever opens it gets the song as you have it, with no server in between.
-The status line gives the compiled song's size, warning when it's over one 16 KB bank.
+**Export WAV** and **Export GBDK C**, also there, download what `render` and `export --gbdk` write, and the status
+line gives the compiled song's size, warning when it's over one 16 KB bank.
 
 When the open song changes on disk (another editor, a script, a git pull), the app reloads it within a second. If
 you have unsaved edits, it asks which version to keep and writes the other next to the song as a `.mine-` or

@@ -1,10 +1,7 @@
-import wasmUrl from '../../../emu/binjgb.wasm?url';
-import romUrl from '../../../driver/player.gbc?url';
-import symbolsUrl from '../../../driver/player.sym?url';
 import { assemble, type DriverSong } from '../../core/driver.ts';
 import { DcFilter } from '../../play/dc.ts';
-import { Wasm } from '../../play/emulator.ts';
 import { Playback, SONG_ADDRESS, type PlayerAssets, type Snapshot, type Tick } from '../../play/player.ts';
+import { loadAssets } from './assets.ts';
 import type { Chunk, Flush, FromWorker, Loop, PlayPosition, Played, Prepare, ToWorker } from './protocol.ts';
 
 // Runs the emulator for the app. Playing from a row means playing the song silently up to it, so the worker keeps
@@ -16,20 +13,6 @@ import type { Chunk, Flush, FromWorker, Loop, PlayPosition, Played, Prepare, ToW
 const AHEAD = 0.2;
 const SNAPSHOT_ROWS = 64;
 const SLICE_MS = 20; // silent running happens in slices this long, so other messages get handled between them
-
-async function loadAssets(): Promise<PlayerAssets> {
-  const get = async (url: string) => {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(`couldn't load ${url}: ${r.status}`);
-    return r;
-  };
-  const [wasm, rom, symbols] = await Promise.all([
-    get(wasmUrl).then((r) => r.arrayBuffer()).then((b) => Wasm.load(b)),
-    get(romUrl).then((r) => r.arrayBuffer()).then((b) => new Uint8Array(b)),
-    get(symbolsUrl).then((r) => r.text()),
-  ]);
-  return { wasm, rom, symbols };
-}
 
 const assets = loadAssets();
 let worklet: MessagePort | undefined;

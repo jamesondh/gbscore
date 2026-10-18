@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { compile, rangeErrors, rowTicks } from '../core/compile.ts';
+import { cName, exportGbdk } from '../core/export.ts';
 import { formatSong } from '../core/format.ts';
 import { noteName } from '../core/notes.ts';
 import type { SongError } from '../core/location.ts';
@@ -7,6 +8,7 @@ import { LANE_KIND, LANES, type LaneItem, type LaneName, type Song } from '../co
 import { TICK_RATE } from '../play/player.ts';
 import { Engine, type EngineEvent } from './audio/engine.ts';
 import type { Loop } from './audio/protocol.ts';
+import { renderWav } from './audio/render.ts';
 import * as edits from './edit.ts';
 import * as effects from './effects.ts';
 import * as instruments from './instruments.ts';
@@ -1414,6 +1416,47 @@ function saveAsDownload() {
   download(open.name, text);
   rememberFile(open.name, text);
   say(`Downloaded ${open.name}.`);
+}
+
+/** The song as it is, if it compiles, for exporting; or undefined, having said why not. */
+function exportable(): { open: OpenSong & { song: Song }; playable: Playable; title: string } | undefined {
+  const open = get().open;
+  if (!open?.song) return undefined;
+  // Without errors, the song as it is compiled, so the playable is this version's.
+  if (open.errors.length || !open.playable) {
+    say("The song doesn't compile, so it can't be exported. See the errors below.", true);
+    return undefined;
+  }
+  return { open: open as OpenSong & { song: Song }, playable: open.playable, title: songTitle(open.name) };
+}
+
+/** Downloads the song played once through, as `gbscore render` writes it. */
+export async function exportWav() {
+  const e = exportable();
+  if (!e) return;
+  const file = `${e.title}.wav`;
+  say(`Rendering ${file}…`);
+  try {
+    const { wav, seconds } = await renderWav({ song: e.playable.data, timeline: e.open.song });
+    download(file, wav as Uint8Array<ArrayBuffer>, 'audio/wav');
+    say(`Downloaded ${file} (${seconds.toFixed(1)} s).`);
+  } catch (err) {
+    say(`Couldn't render ${file}: ${err instanceof Error ? err.message : err}`, true);
+  }
+}
+
+/** Downloads the song as GBDK C, as `gbscore export --gbdk` writes it with no options: the song named after the
+ * file, in the bank bankpack chooses. */
+export function exportC() {
+  const e = exportable();
+  if (!e) return;
+  const name = cName(e.title);
+  if (typeof name !== 'string') {
+    say(`${e.title} isn't a C name, so the song can't be exported. Rename the file to letters, digits and _.`, true);
+    return;
+  }
+  download(`${e.title}.c`, exportGbdk(e.playable.data, { name, bank: 255, source: e.open.name }), 'text/x-c');
+  say(`Downloaded ${e.title}.c: ${name}, ${e.playable.size} bytes, in the bank bankpack chooses.`);
 }
 
 /** After the file changed on disk with unsaved edits: keeps these edits, and writes the file's version next to it

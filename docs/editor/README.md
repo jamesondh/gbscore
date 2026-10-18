@@ -398,7 +398,7 @@ choose.
     ("1 lead", "1 beat"); a swatch or icon says what it is. A menu with no value shows a noun (Pattern, View). A
     readout is just the value (`1.1.1`).
   - **The song menu** is the song's name: it saves the song (Download, with no folder open), copies a share link,
-    opens its settings, starts a new song, opens a song file, a folder or the demo song, and with a folder open
+    opens its settings, exports it (WAV and GBDK C, below), starts a new song, opens a song file, a folder or the demo song, and with a folder open
     lists its songs and checks folder access. A new song (`untitled`: four bars of 4/4, an instrument for each
     lane) and the demo song open as if from a file, as a share link does, closing the folder. There's no folder button: a song opened from a file has no folder, and the folder's name is in the
     menu and the tooltip, while Save or Download says which kind is open.
@@ -630,6 +630,11 @@ choose.
   since the app can't tell whether it finished, so closing the tab still asks first. Opening a file closes the
   folder. The app keeps the song's text, as opened or last downloaded, in local storage and reopens it on the next
   visit; opening a folder forgets it.
+- **Exports:** the song menu's Export WAV and Export GBDK C download the song as it is, unsaved edits and all, as
+  `gbscore render` and `gbscore export --gbdk` write it with no options: the bytes are the same
+  (`test/app/export.e2e.ts`). The WAV plays the song once through, rendered by a worker of its own so playback
+  carries on (`src/app/audio/render.ts`). The C names the song after the file (`tune_uge`) in the bank bankpack
+  chooses; a file whose name isn't a C name has to be renamed. A song that doesn't compile can't be exported.
 - **Size:** the status line gives the compiled song's bytes, as `gbscore check` does, in red over one 16 KB bank.
   There's no budget to set: that would go in the song file, and the command line's `--budget` covers a build.
 - **Share links:** the song menu's Copy share link copies a link with the song in it, as it is, unsaved edits

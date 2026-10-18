@@ -46,6 +46,8 @@ import {
   chooseFile,
   chooseFolder,
   engine,
+  exportC,
+  exportWav,
   lengths,
   newSong,
   openSong,
@@ -119,8 +121,8 @@ function Divider() {
   return <div className="mx-1 h-5 w-px bg-border" />;
 }
 
-/** The song's name: saves it (or downloads it, with no folder open), copies a link to it, opens its settings, starts a new song, and
- * opens a song file, a folder (listing its songs) or the demo song. */
+/** The song's name: saves it (or downloads it, with no folder open), copies a link to it, opens its settings,
+ * exports it as a WAV or GBDK C, starts a new song, and opens a song file, a folder (listing its songs) or the demo song. */
 function SongMenu() {
   const [settings, setSettings] = useState(false);
   const folder = useApp((s) => s.folder);
@@ -149,6 +151,13 @@ function SongMenu() {
           </DropdownMenuItem>
           <DropdownMenuItem disabled={!open?.song} onSelect={() => setSettings(true)}>
             Song settings…
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled={!open?.song} onSelect={() => void exportWav()}>
+            Export WAV
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={!open?.song} onSelect={() => exportC()}>
+            Export GBDK C
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => mayDiscard() && void newSong()}>New song</DropdownMenuItem>

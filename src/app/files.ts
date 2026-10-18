@@ -98,9 +98,9 @@ export function pickFile(): Promise<File | undefined> {
   });
 }
 
-/** Saves text as a download, where the browser puts downloads. */
-export function download(name: string, text: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+/** Saves text or bytes as a download, where the browser puts downloads. */
+export function download(name: string, data: string | Uint8Array<ArrayBuffer>, type = 'application/json') {
+  const url = URL.createObjectURL(new Blob([data], { type }));
   const a = document.createElement('a');
   a.href = url;
   a.download = name;
