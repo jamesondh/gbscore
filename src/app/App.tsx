@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { TooltipProvider } from './components/ui/tooltip.tsx';
 import { InstrumentPanel } from './Instruments.tsx';
-import { Conflict, Errors, FolderCheck, StatusLine, Welcome } from './Panels.tsx';
+import { Conflict, EditBar, Errors, FolderCheck, StatusLine, Welcome } from './Panels.tsx';
 import { Roll } from './roll/Roll.tsx';
 import { releaseAll, resumeMidi } from './entry.ts';
 import { onKey, onKeyUp, onLeave } from './keys.ts';
@@ -55,6 +55,7 @@ export function App() {
             <Roll />
             {panel && <InstrumentPanel />}
             <Errors />
+            <EditBar />
             <StatusLine />
           </>
         ) : (

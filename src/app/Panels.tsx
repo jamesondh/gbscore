@@ -1,4 +1,4 @@
-import { FileMusic, FolderOpen } from 'lucide-react';
+import { ClipboardPaste, Copy, FileMusic, FolderOpen, Redo2, Trash2, Undo2 } from 'lucide-react';
 import { BANK_SIZE } from '../core/compile.ts';
 import { formatError } from '../core/location.ts';
 import { LANES, type LaneName } from '../core/schema.ts';
@@ -7,14 +7,20 @@ import { canOpenFolders, PROBE_FILE } from './files.ts';
 import {
   chooseFile,
   chooseFolder,
+  copySelection,
+  deleteSelection,
   endProbe,
   keepMine,
   loadTheirs,
+  paste,
+  redo,
   regainAccess,
+  removePlacement,
   reopenRemembered,
   setStartRow,
   setView,
   startProbe,
+  undo,
   useApp,
 } from './store.ts';
 
@@ -145,6 +151,37 @@ export function Conflict() {
       <Button size="sm" variant="outline" onClick={() => void loadTheirs()}>
         Load the one on disk
       </Button>
+    </div>
+  );
+}
+
+/** On a touch screen, with no keys or right-click, the edit keys as buttons: each calls what its key does
+ * (keys.ts). A strip of its own, above the status line, so it hides none of the roll; a mouse never sees it. */
+export function EditBar() {
+  const past = useApp((s) => !!s.open?.past.length);
+  const future = useApp((s) => !!s.open?.future.length);
+  const selected = useApp((s) => s.selection.length > 0 || s.fxSelection.length > 0);
+  const placement = useApp((s) => !!s.placement);
+  const button = (label: string, icon: React.ReactNode, run: () => unknown, disabled = false) => (
+    <Button
+      size="icon-lg"
+      variant="ghost"
+      className="size-10"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={() => void run()}
+    >
+      {icon}
+    </Button>
+  );
+  return (
+    <div className="hidden h-11 shrink-0 items-center justify-center gap-2 border-t pointer-coarse:flex">
+      {button('Undo (Cmd-Z)', <Undo2 />, undo, !past)}
+      {button('Redo (Cmd-Shift-Z)', <Redo2 />, redo, !future)}
+      {button('Delete (Delete)', <Trash2 />, placement ? removePlacement : deleteSelection, !selected && !placement)}
+      {button('Copy (Cmd-C)', <Copy />, copySelection, !selected)}
+      {button('Paste at the flag (Cmd-V)', <ClipboardPaste />, paste)}
     </div>
   );
 }

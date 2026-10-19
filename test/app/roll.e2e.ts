@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parseSong } from '../../src/core/compile.ts';
 import { formatSong } from '../../src/core/format.ts';
 import { position } from '../../src/core/location.ts';
-import { clampPitchTop, GUTTER, laneBoxes, noteToY, stripTop } from '../../src/app/roll/geometry.ts';
+import { clampPitchTop, GUTTER, laneBoxes, noteToY, RULER, stripTop } from '../../src/app/roll/geometry.ts';
 
 // Ideas from FL Studio's piano roll, in a real browser. The folder is the origin-private file system.
 
@@ -553,4 +553,61 @@ test.describe('on a touch screen', () => {
     await expect.poll(() => onDisk(page)).toMatch(/\{ "row": 26, "len": \d+, "note": "F#5", "inst": 1 \}/);
     expect((await onDisk(page)).match(/"row"/g)?.length).toBe(3); // the two notes in the song, and the one clicked
   });
+
+  test('the edit bar undoes, redoes, copies, pastes and deletes, as their keys do', async ({ page }) => {
+    const at = await open(page);
+    const bar = (name: string) => page.getByRole('button', { name, exact: true });
+    const [undo, redo, del, copy, paste] = [
+      'Undo (Cmd-Z)',
+      'Redo (Cmd-Shift-Z)',
+      'Delete (Delete)',
+      'Copy (Cmd-C)',
+      'Paste at the flag (Cmd-V)',
+    ].map(bar);
+    const saved = async () => {
+      await page.keyboard.press('Control+s');
+      await expect(page.getByLabel('Unsaved edits')).toHaveCount(0);
+      return onDisk(page);
+    };
+    const E5at = (row: number) => new RegExp(`\\{ "row": ${row}, "len": \\d+, "note": "E5", "inst": 1 \\}`);
+    await expect(undo).toBeDisabled();
+    await expect(redo).toBeDisabled();
+    await expect(del).toBeDisabled();
+    await expect(copy).toBeDisabled();
+
+    await page.touchscreen.tap(at(20.5, E5).x, at(20.5, E5).y); // draws a note
+    await expect(page.getByLabel('Unsaved edits')).toBeVisible();
+    await undo.tap();
+    await expect(page.getByLabel('Unsaved edits')).toHaveCount(0);
+    await expect(undo).toBeDisabled();
+    await redo.tap();
+    await expect(redo).toBeDisabled();
+    expect(await saved()).toMatch(E5at(20));
+
+    // The flag to row 40, then the note selected, copied and pasted there.
+    const canvas = (await page.locator('canvas').boundingBox())!;
+    await page.touchscreen.tap(at(40.5, E5).x, canvas.y + RULER / 2);
+    await page.touchscreen.tap(at(21, E5).x, at(21, E5).y);
+    await expect(copy).toBeEnabled();
+    await copy.tap();
+    await paste.tap();
+    const pasted = await saved();
+    expect(pasted).toMatch(E5at(20));
+    expect(pasted).toMatch(E5at(40));
+
+    // What was pasted is selected, and Delete takes it away.
+    await expect(del).toBeEnabled();
+    await del.tap();
+    const deleted = await saved();
+    expect(deleted).toMatch(E5at(20));
+    expect(deleted).not.toMatch(E5at(40));
+    expect(deleted.match(/"row"/g)?.length).toBe(3); // the two notes in the song, and the one drawn
+  });
+});
+
+test('shows no edit bar to a mouse', async ({ page }) => {
+  await open(page);
+  const undo = page.getByRole('button', { name: 'Undo (Cmd-Z)', includeHidden: true });
+  await expect(undo).toHaveCount(1); // there, but hidden
+  await expect(undo).toBeHidden();
 });
