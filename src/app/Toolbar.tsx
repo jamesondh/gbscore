@@ -45,11 +45,13 @@ import {
   chooseDemo,
   chooseFile,
   chooseFolder,
+  clearRecents,
   engine,
   exportC,
   exportWav,
   lengths,
   newSong,
+  openRecent,
   openSong,
   save,
   setGhosts,
@@ -144,6 +146,7 @@ function SongMenu() {
   const [settings, setSettings] = useState(false);
   const folder = useApp((s) => s.folder);
   const songs = useApp((s) => s.songs);
+  const recents = useApp((s) => s.recents);
   const open = useApp((s) => s.open);
   const dirty = unsaved(open);
   const title = open ? songTitle(open.name) : 'No song';
@@ -182,6 +185,19 @@ function SongMenu() {
           <DropdownMenuItem disabled={!canOpenFolders()} onSelect={() => mayDiscard() && void chooseFolder()}>
             {folder ? 'Open another folder…' : 'Open a folder…'}
           </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger disabled={!recents.length}>Recent files</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="max-h-80 max-w-72 overflow-y-auto">
+              <DropdownMenuLabel>Stored copies · saving downloads a file</DropdownMenuLabel>
+              {recents.map((file) => (
+                <DropdownMenuItem key={file.name} title={file.name} onSelect={() => mayDiscard() && void openRecent(file)}>
+                  <span className="truncate">{file.name}</span>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={clearRecents}>Clear recent files</DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
           <DropdownMenuItem onSelect={() => mayDiscard() && void chooseDemo()}>Open the demo song</DropdownMenuItem>
           {folder && (
             <>

@@ -642,6 +642,12 @@ choose.
   since the app can't tell whether it finished, so closing the tab still asks first. Opening a file closes the
   folder. The app keeps the song's text, as opened or last downloaded, in local storage and reopens it on the next
   visit; opening a folder forgets it.
+- **Recent files:** the song menu offers up to ten local copies, newest first, kept between visits. Opening a
+  standalone file or share link, or downloading a song, updates its copy; unsaved edits do not.
+  Folder songs stay in the folder list. New songs and the demo enter history only when downloaded. Entries with
+  the same filename replace each other. Reopening a recent file closes the folder and opens the stored copy, so saving downloads a file;
+  it does not read the original on disk. The picker labels this and can clear its history without closing the
+  current song. Storage being full or disabled leaves history available only for the session.
 - **Exports:** the song menu's Export WAV and Export GBDK C download the song as it is, unsaved edits and all, as
   `gbscore render` and `gbscore export --gbdk` write it with no options: the bytes are the same
   (`test/app/export.e2e.ts`). The WAV plays the song once through, rendered by a worker of its own so playback
