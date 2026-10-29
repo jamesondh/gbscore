@@ -88,6 +88,9 @@ test('opening a folder forgets the song opened from a file', async ({ page }) =>
   // Reloading now would reopen the folder, but headless Chromium closes the page when it reads an OPFS folder
   // back from IndexedDB, so check that the song is forgotten instead.
   expect(await page.evaluate(() => localStorage.getItem('gbscore.file'))).toBeNull();
+  // Folder songs stay in the live folder list; Recent files contains standalone copies only.
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('gbscore.recentFiles')!).map((f: { name: string }) => f.name)))
+    .toEqual(['tune.gbscore.json']);
 });
 
 test('the song menu starts a new song and reopens the demo song', async ({ page }) => {

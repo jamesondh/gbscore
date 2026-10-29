@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { readRecents, writeRecents, withRecent, type RecentFile } from './recent.ts';
 import { compile, rangeErrors, rowTicks } from '../core/compile.ts';
 import { cName, exportGbdk } from '../core/export.ts';
 import { formatSong } from '../core/format.ts';
@@ -76,6 +77,7 @@ export interface AppState {
   remembered?: FileSystemDirectoryHandle; // last visit's folder, waiting for a click to reopen it
   lostAccess?: boolean; // permission to the open folder lapsed; a click can ask for it again
   songs: string[];
+  recents: RecentFile[];
   open?: OpenSong;
   view: View;
   selection: LaneItem[]; // notes in the expanded lane, or in the open pattern
@@ -108,6 +110,7 @@ export interface AppState {
 
 export const useApp = create<AppState>(() => ({
   songs: [],
+  recents: readRecents(),
   view: initialView(undefined),
   selection: [],
   fxSelection: [],
@@ -236,7 +239,7 @@ async function openDemo() {
 export async function chooseDemo() {
   const before = get().open;
   try {
-    await openAsFile(DEMO, await demoText(), before, 'the demo song');
+    await openAsFile(DEMO, await demoText(), before, 'the demo song', false);
   } catch (e) {
     say(`Couldn't open the demo song: ${describeError(e)}`, true);
   }
@@ -260,7 +263,7 @@ export function newSong() {
     const added = instruments.addInstrument(song, kind);
     if (typeof added !== 'string') song = added.song;
   }
-  return openAsFile('untitled.gbscore.json', formatSong(song), get().open, 'a new song');
+  return openAsFile('untitled.gbscore.json', formatSong(song), get().open, 'a new song', false);
 }
 
 export async function chooseFolder() {
@@ -402,12 +405,12 @@ export async function openShared(): Promise<boolean> {
 
 /** Opens a song from its text as if from a file, closing the folder if one was open, unless the open song was
  * edited since it was `before`. */
-async function openAsFile(name: string, text: string, before: OpenSong | undefined, what: string) {
+async function openAsFile(name: string, text: string, before: OpenSong | undefined, what: string, recent = true) {
   stop();
   await serial(async () => {
     if (editedSince(before)) return say(`Didn't open ${what}: ${before?.name} was edited meanwhile. Save it first.`, true);
     show(opened(name, text, undefined), { folder: undefined, songs: [], lostAccess: false, probe: undefined });
-    rememberFile(name, text);
+    rememberFile(name, text, recent);
   });
 }
 
@@ -431,12 +434,35 @@ export async function share() {
 // not the file, so the app keeps the contents. Opening a folder forgets them.
 const FILE_KEY = 'gbscore.file';
 
-function rememberFile(name: string, text: string) {
+function rememberFile(name: string, text: string, recent = true) {
   try {
     localStorage.setItem(FILE_KEY, JSON.stringify({ name, text }));
   } catch {
-    localStorage.removeItem(FILE_KEY); // over the storage quota: forget the older song rather than reopen it
+    // History must not take space needed by the last-song restore.
+    writeRecents([]);
+    try {
+      localStorage.setItem(FILE_KEY, JSON.stringify({ name, text }));
+    } catch {
+      localStorage.removeItem(FILE_KEY); // forget the older song rather than reopen it
+    }
   }
+  if (recent) rememberRecent(name, text);
+}
+
+function rememberRecent(name: string, text: string) {
+  const recents = withRecent(get().recents, { name, text });
+  set({ recents });
+  writeRecents(recents);
+}
+
+export function clearRecents() {
+  set({ recents: [] });
+  writeRecents([]);
+}
+
+/** Reopens the stored copy as a standalone song; saving downloads it. */
+export async function openRecent(file: RecentFile) {
+  await openAsFile(file.name, file.text, get().open, file.name);
 }
 
 function rememberedFile(): { name: string; text: string } | undefined {
