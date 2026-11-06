@@ -14,7 +14,7 @@ export const PAN_NAMES = ['off', 'R', 'L', 'LR'] as const; // index is (left << 
 
 export const effectSchema = z
   .strictObject({
-    arp: pair('0xy: arpeggio, cycling the note, +x and +y semitones each tick.'),
+    arp: pair("0xy: arpeggio over the note, +x and +y semitones, one each tick, in an order set by the driver's tick counter."),
     slideUp: byte.describe('1xx: slide the pitch up by xx units per tick.'),
     slideDown: byte.describe('2xx: slide the pitch down by xx units per tick.'),
     glide: byte.describe("3xx: glide toward this row's note by xx units per tick (tone portamento)."),

@@ -136,7 +136,7 @@ on some lane in their row.
 
 | Effect | Tracker | What it does |
 |---|---|---|
-| `{ "arp": [x, y] }` | `0xy` | arpeggio: the note, +x and +y semitones, cycling every tick |
+| `{ "arp": [x, y] }` | `0xy` | arpeggio: the note, +x and +y semitones, one each tick, in the driver's order (below) |
 | `{ "slideUp": n }`, `{ "slideDown": n }` | `1xx`, `2xx` | slide the pitch by n units per tick |
 | `{ "glide": n }` | `3xx` | glide toward this row's note (tone portamento) |
 | `{ "vibrato": [speed, depth] }` | `4xy` | vibrato |
@@ -147,6 +147,12 @@ on some lane in their row.
 | `{ "volume": v }` | `C0v` | set the volume (0–15) and restart the note; the wave channel has 4 levels |
 | `{ "cut": t }` | `Exx` | cut at tick t (lane items only; notes use `len` and `cutTick`) |
 | `{ "raw": "9D0" }` | any | an effect the names can't express, as tracker hex; only where no name fits |
+
+An arpeggio steps by hUGEDriver's 8-bit tick counter, which counts every tick from the song's start: it plays +y
+when (counter − 1) mod 3 is 0, +x when it's 1, and the note when it's 2. 256 isn't a multiple of 3, so the order
+moves on a tick each time the counter wraps, every 256 ticks. At 6 ticks a row, rows in the first 256 ticks start
+on the note, so `[4, 7]` plays 0, 7, 4, 0, 7, 4; rows in the next 256 start on +x, then on +y, then on the note
+again. A row the counter wraps in plays one step twice: a one-row note on row 0 plays 7, 7, 4, 0, 7, 4.
 
 `global` items each hold a row and one of `tempo` (`Fxx`), `pan` (`8xx`: `"LR"`, `"L"`, `"R"` or `"off"` for
 each of pulse1, pulse2, wave and noise) and `masterVolume` (`5xy`: left and right, 0–7).
