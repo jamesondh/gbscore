@@ -70,6 +70,10 @@ unchanged: the song is `song_uge`, in the bank `--bank` gives (255, the default,
 links, on the binjgb emulator, at CrossZGB's 60.24 ticks a second, and writes 16-bit stereo at 44.1 kHz. binjgb
 mixes to 8 bits; a 20 Hz high-pass takes out the Game Boy's DC offset, as the hardware's capacitor does.
 
+One known difference from the hardware: binjgb stops a rising envelope at volume 14, since its `update_envelopes`
+takes a step only when the new volume is under 15. The hardware, and emulators such as SameBoy and Gambatte, rise
+to 15, so on a Game Boy a note with an upward envelope ends about 0.6 dB louder than gbscore plays it.
+
 ## The song file
 
 A song is one `<name>.gbscore.json` file. [`schema/gbscore.schema.json`](schema/gbscore.schema.json) describes every
