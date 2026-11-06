@@ -351,7 +351,7 @@
           "items": false,
           "minItems": 2,
           "maxItems": 2,
-          "description": "0xy: arpeggio, cycling the note, +x and +y semitones each tick."
+          "description": "0xy: arpeggio over the note, +x and +y semitones, one each tick, in an order set by the driver's tick counter."
         },
         "slideUp": {
           "type": "integer",
